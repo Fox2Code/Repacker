@@ -8,3 +8,5 @@
 example:
 
 `java -jar Repaker.jar . 1.14.4`
+
+**/!\\ This project is designed to be used as a library and not as a executable /!\\**
