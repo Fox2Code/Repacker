@@ -148,7 +148,7 @@ public class Repacker {
                 classReader.accept(new ClassRemapper(classWriter, mapping), 0);
                 String name = entry.getKey();
                 remap.put(mapping.map(name.substring(0, name.length()-6))+".class", classWriter.toByteArray());
-            } else {
+            } else if (!entry.getKey().startsWith("META-INF/")) {
                 remap.put(entry.getKey(), entry.getValue());
             }
         }
