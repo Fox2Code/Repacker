@@ -65,6 +65,9 @@ public class Repacker {
     }
 
     public JsonObject getVersionManifest(String version) throws IOException {
+        if (version == null) {
+            throw new NullPointerException("Version cannot be null!");
+        }
         File versionIndex = new File(cacheDir, "net/minecraft/"+version+"/"+version+".json");
         if (versionIndex.exists()) {
             try {
