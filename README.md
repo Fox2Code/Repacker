@@ -1,5 +1,5 @@
 ![Release](https://jitpack.io/v/Fox2Code/Repacker.svg)
-
+![](https://jitci.com/gh/Fox2Code/Repacker/svg)
 
 # Repacker
 1.14.4+ Minecraft open-source deobfuscator using official Mojang mappings
