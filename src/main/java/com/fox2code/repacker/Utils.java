@@ -108,7 +108,6 @@ public class Utils {
     }
 
     public static void remap(File in, File out, Remapper mapping) throws IOException {
-        System.out.println("Remapping client jar...");
         Map<String,byte[]> orig = Utils.readZIP(new FileInputStream(in));
         Map<String,byte[]> remap = new HashMap<>();
         for (Map.Entry<String,byte[]> entry:orig.entrySet()) {
