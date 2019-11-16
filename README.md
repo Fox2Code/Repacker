@@ -53,7 +53,7 @@ dependencies {
 
 ### Maven
 
-```
+```XML
 	<repositories>
 		<repository>
 		    <id>jitpack.io</id>
