@@ -1,11 +1,11 @@
 package com.fox2code.repacker;
 
-import com.google.gson.JsonParser;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.commons.ClassRemapper;
+import org.objectweb.asm.commons.Remapper;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.HashMap;
@@ -105,5 +105,23 @@ public class Utils {
         }
         zip.flush();
         zip.close();
+    }
+
+    public static void remap(File in, File out, Remapper mapping) throws IOException {
+        System.out.println("Remapping client jar...");
+        Map<String,byte[]> orig = Utils.readZIP(new FileInputStream(in));
+        Map<String,byte[]> remap = new HashMap<>();
+        for (Map.Entry<String,byte[]> entry:orig.entrySet()) {
+            if (entry.getKey().endsWith(".class")) {
+                ClassReader classReader = new ClassReader(entry.getValue());
+                ClassWriter classWriter = new ClassWriter(classReader, 0);
+                classReader.accept(new ClassRemapper(classWriter, mapping), 0);
+                String name = entry.getKey();
+                remap.put(mapping.map(name.substring(0, name.length()-6))+".class", classWriter.toByteArray());
+            } else if (!entry.getKey().startsWith("META-INF/")) {
+                remap.put(entry.getKey(), entry.getValue());
+            }
+        }
+        Utils.writeZIP(remap, new FileOutputStream(out));
     }
 }

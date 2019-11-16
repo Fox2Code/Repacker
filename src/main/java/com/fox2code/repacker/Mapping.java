@@ -1,18 +1,25 @@
 package com.fox2code.repacker;
 
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.FieldVisitor;
-import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.commons.Remapper;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
-
-import static org.objectweb.asm.Opcodes.ASM7;
 
 public class Mapping extends Remapper {
     HashMap<String, String> map;
     HashMap<String, String> methods;
     HashMap<String, String> fields;
+
+    public Mapping(File file) throws IOException {
+        this(new FileInputStream(file));
+    }
+
+    public Mapping(InputStream is) throws IOException {
+        this(Utils.readAll(is));
+    }
 
     public Mapping(String raw) {
         map = new HashMap<>();
@@ -103,5 +110,9 @@ public class Mapping extends Remapper {
             case "double":
                 return "D";
         }
+    }
+
+    public void remap(File in, File out) throws IOException {
+        Utils.remap(in, out, this);
     }
 }
