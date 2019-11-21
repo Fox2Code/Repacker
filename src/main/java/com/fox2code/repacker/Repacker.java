@@ -115,9 +115,6 @@ public class Repacker {
         File versionMappings = new File(cacheDir, "net/minecraft/minecraft/"+version+"/client-mappings.txt");
         JsonObject jsonObject = getVersionManifest(version);
         JsonObject downloads = jsonObject.getAsJsonObject("downloads");
-        if (!downloads.has("client_mappings")) {
-            throw new RepackException("Missing Obfuscation mapping in current version!");
-        }
         return getMappings(versionMappings, downloads.getAsJsonObject("client_mappings").get("url").getAsString(), "client");
     }
 
@@ -125,9 +122,6 @@ public class Repacker {
         File versionMappings = new File(cacheDir, "net/minecraft/minecraft/"+version+"/server-mappings.txt");
         JsonObject jsonObject = getVersionManifest(version);
         JsonObject downloads = jsonObject.getAsJsonObject("downloads");
-        if (!downloads.has("server_mappings")) {
-            throw new RepackException("Missing Obfuscation mapping in current version!");
-        }
         return getMappings(versionMappings, downloads.getAsJsonObject("server_mappings").get("url").getAsString(), "server");
     }
 
