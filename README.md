@@ -4,6 +4,8 @@
 # Repacker
 1.14.4+ Minecraft open-source deobfuscator using official Mojang mappings
 
+(Work also with snapshots)
+
 ## Usage
 
 ### Command line
@@ -17,6 +19,8 @@ example:
 and
 
 `java -jar Repacker.jar . 1.14.4-server` to repack MC 1.14.4 server
+
+pre-release version names are VER-preX (Ex: 1.15-pre1)
 
 ### Java
 
@@ -47,7 +51,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.Fox2Code:Repacker:1.1.1'
+    implementation 'com.github.Fox2Code:Repacker:1.2.0'
 }
 ```
 
@@ -63,6 +67,6 @@ dependencies {
   	<dependency>
 	    <groupId>com.github.Fox2Code</groupId>
 	    <artifactId>Repacker</artifactId>
-	    <version>1.1.1</version>
+	    <version>1.2.0</version>
 	</dependency>
 ```
