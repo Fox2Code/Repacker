@@ -1,5 +1,6 @@
 package com.fox2code.repacker;
 
+import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.Remapper;
 
 import java.io.File;
@@ -31,8 +32,11 @@ public class Mapping extends Remapper {
             if (line.startsWith("#") || line.startsWith(" ") || line.isEmpty()) {
                 continue;
             }
+            while (line.endsWith(" ") || line.endsWith("\r") || line.endsWith(":")) {
+                line = line.substring(0, line.length() - 1);
+            }
             int index = line.indexOf(" -> ");
-            String substring = line.substring(index + 4, line.length() - 1);
+            String substring = line.substring(index + 4);
             reverseMap.put(line.substring(0, index), substring);
             map.put(substring.replace('.','/'), line.substring(0, index).replace('.','/'));
         }
@@ -41,9 +45,12 @@ public class Mapping extends Remapper {
             if (line.startsWith("#") || line.isEmpty()) {
                 continue;
             }
+            while (line.endsWith(" ") || line.endsWith("\r") || line.endsWith(":")) {
+                line = line.substring(0, line.length() - 1);
+            }
             if (!line.startsWith(" ")) {
                 int index = line.indexOf(" -> ");
-                context = line.substring(index+4, line.length()-1).replace('.','/');
+                context = line.substring(index + 4).replace('.','/');
                 continue;
             }
             line = line.substring(4);
@@ -71,6 +78,15 @@ public class Mapping extends Remapper {
     @Override
     public String map(String internalName) {
         return map.getOrDefault(internalName, internalName);
+    }
+
+    @Override
+    public String mapType(String internalName) {
+        if (internalName != null && internalName.startsWith("L") && internalName.endsWith(";")) {
+            return "L"+this.map(internalName.substring(1, internalName.length()-1))+";";
+        } else {
+            return super.mapType(internalName);
+        }
     }
 
     @Override
@@ -114,5 +130,32 @@ public class Mapping extends Remapper {
 
     public void remap(File in, File out) throws IOException {
         Utils.remap(in, out, this);
+    }
+
+    @Override
+    public String toString() {
+        return "{classes:"+map+",methods:"+methods+",fields:"+fields+"}";
+    }
+
+    @Override
+    public int hashCode() {
+        return map.hashCode() ^ methods.hashCode() ^ fields.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof Mapping && ((Mapping) obj).map.equals(this.map) && ((Mapping) obj).methods.equals(this.methods) && ((Mapping) obj).fields.equals(this.fields);
+    }
+
+    public HashMap<String, String> getFields() {
+        return fields;
+    }
+
+    public HashMap<String, String> getMap() {
+        return map;
+    }
+
+    public HashMap<String, String> getMethods() {
+        return methods;
     }
 }

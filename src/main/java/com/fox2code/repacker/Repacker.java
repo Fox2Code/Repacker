@@ -142,4 +142,8 @@ public class Repacker {
     public File getServerRemappedFile(String version) {
         return new File(cacheDir, "net/minecraft/minecraft/"+version+"/minecraft-"+version+"-server-remaped.jar");
     }
+
+    public File getVersionRemapDir(String version) {
+        return new File(cacheDir, "net/minecraft/minecraft/"+version);
+    }
 }
