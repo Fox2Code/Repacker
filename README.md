@@ -1,6 +1,3 @@
-![Release](https://jitpack.io/v/Fox2Code/Repacker.svg)
-![](https://jitci.com/gh/Fox2Code/Repacker/svg)
-
 # Repacker
 1.14.4+ Minecraft open-source deobfuscator using official Mojang mappings
 
@@ -38,20 +35,18 @@ File repackedClient = repacker.getClientRemappedFile(version);
 
 ## Add as library
 
-Repacker use [JitPack](https://jitpack.io) as maven repository
-
 ### Gradle
 
 ```Groovy
 repositories {
     mavenCentral()
     maven {
-        url 'https://jitpack.io'
+        url 'http://62.4.29.69/maven'
     }
 }
 
 dependencies {
-    implementation 'com.github.Fox2Code:Repacker:1.2.0'
+    implementation 'com.fox2code:repacker:1.2.0'
 }
 ```
 
@@ -60,13 +55,13 @@ dependencies {
 ```XML
 	<repositories>
 		<repository>
-		    <id>jitpack.io</id>
-		    <url>https://jitpack.io</url>
+		    <id>puzzle-mod-loader</id>
+		    <url>http://62.4.29.69/maven</url>
 		</repository>
 	</repositories>
   	<dependency>
-	    <groupId>com.github.Fox2Code</groupId>
-	    <artifactId>Repacker</artifactId>
+	    <groupId>com.fox2code</groupId>
+	    <artifactId>repacker</artifactId>
 	    <version>1.2.0</version>
 	</dependency>
 ```
