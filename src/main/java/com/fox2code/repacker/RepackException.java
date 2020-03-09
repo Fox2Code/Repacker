@@ -10,4 +10,8 @@ public class RepackException extends IOException {
     public RepackException(String message) {
         super(message);
     }
+
+    public RepackException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

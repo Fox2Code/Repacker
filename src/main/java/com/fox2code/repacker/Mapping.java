@@ -1,6 +1,5 @@
 package com.fox2code.repacker;
 
-import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.Remapper;
 
 import java.io.File;
@@ -8,11 +7,14 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Mapping extends Remapper {
     HashMap<String, String> map;
     HashMap<String, String> methods;
     HashMap<String, String> fields;
+    ReverseMapping cachedReverseMapping = null;
 
     public Mapping(File file) throws IOException {
         this(new FileInputStream(file));
@@ -132,6 +134,10 @@ public class Mapping extends Remapper {
         Utils.remap(in, out, this);
     }
 
+    public void remap(File in, File out, PostPatcher postPatcher) throws IOException {
+        Utils.remap(in, out, this, postPatcher);
+    }
+
     @Override
     public String toString() {
         return "{classes:"+map+",methods:"+methods+",fields:"+fields+"}";
@@ -157,5 +163,27 @@ public class Mapping extends Remapper {
 
     public HashMap<String, String> getMethods() {
         return methods;
+    }
+
+    ReverseMapping getReverseMapping() {
+        if (cachedReverseMapping == null) {
+            cachedReverseMapping = new ReverseMapping();
+            cachedReverseMapping.cl.addAll(this.map.values());
+            this.fields.forEach((k, v) -> {
+                cachedReverseMapping.f.add(k.substring(0, k.indexOf(':'))+"#"+v);
+            });
+            this.methods.forEach((k, v) -> {
+                cachedReverseMapping.m.add(k.substring(0, k.indexOf('.'))+"#"+v);
+            });
+        }
+        return cachedReverseMapping;
+    }
+
+    static class ReverseMapping {
+        private ReverseMapping() {}
+
+        public Set<String> cl = new HashSet<>();
+        public Set<String> m = new HashSet<>();
+        public Set<String> f = new HashSet<>();
     }
 }

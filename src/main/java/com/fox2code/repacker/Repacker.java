@@ -2,58 +2,74 @@ package com.fox2code.repacker;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import org.objectweb.asm.ClassVisitor;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.HashMap;
+import java.util.Map;
 
 public class Repacker {
-    private File cacheDir;
     private HashMap<String, String> cache;
     private PrintStream out;
+    private DirLayout dirLayout;
 
+    @Deprecated
     public Repacker(File cacheDir) {
         this(cacheDir, System.out);
     }
 
+    @Deprecated
     public Repacker(File cacheDir,PrintStream out) {
-        this.cacheDir = cacheDir;
+        this(new DirLayout.MavenDirLayout(cacheDir), out);
+    }
+
+    public Repacker(DirLayout dirLayout) {
+        this(dirLayout, System.out);
+    }
+
+    public Repacker(DirLayout dirLayout, PrintStream out) {
+        this.dirLayout = dirLayout;
         this.cache = new HashMap<>();
         this.out = out;
     }
 
     public void repackClient(String version) throws IOException {
-        File versionIndex = new File(cacheDir, "net/minecraft/minecraft/"+version+"/"+version+".json");
-        File versionJar = new File(cacheDir, "net/minecraft/minecraft/"+version+"/minecraft-"+version+".jar");
-        File versionMappings = new File(cacheDir, "net/minecraft/minecraft/"+version+"/client-mappings.txt");
-        File versionJarRemap = new File(cacheDir, "net/minecraft/minecraft/"+version+"/minecraft-"+version+"-remaped.jar");
+        File versionIndex = dirLayout.getVersionIndexFile(version);
+        File versionJar = dirLayout.getMinecraftFile(version, true);
+        File versionMappings = dirLayout.getMappingFile(version, true);
+        File versionMappingsSrv = dirLayout.getMappingFile(version, false);
+        File versionJarRemap = dirLayout.getMinecraftRepackFile(version, true);
         if (!versionIndex.exists() || !versionJar.exists() || !versionMappings.exists() || !versionJarRemap.exists()) {
             JsonObject jsonObject = getVersionManifest(version);
             JsonObject downloads = jsonObject.getAsJsonObject("downloads");
             if (!downloads.has("client_mappings")) {
-                throw new RepackException("Missing Obfuscation mapping in current version!");
+                throw new RepackException("Missing Obfuscation mapping in the current version!");
             }
             if (!versionJar.exists()) {
                 this.out.println("Downloading client jar...");
                 Utils.download(downloads.getAsJsonObject("client").get("url").getAsString(), new FileOutputStream(versionJar));
             }
             Mapping mapping = getMappings(versionMappings, downloads.getAsJsonObject("client_mappings").get("url").getAsString(), "client");
+            Mapping mappingSrv = getMappings(versionMappingsSrv, downloads.getAsJsonObject("server_mappings").get("url").getAsString(), "server");
+            this.out.println("Parsing mapping...");
+            ClientAnnotationPatcher clientAnnotationPatcher = new ClientAnnotationPatcher(mapping, mappingSrv);
             this.out.println("Remapping client jar...");
-            mapping.remap(versionJar, versionJarRemap);
+            mapping.remap(versionJar, versionJarRemap, new LogPatcher(clientAnnotationPatcher, "client"));
         }
     }
 
     public void repackServer(String version) throws IOException {
-        File versionIndex = new File(cacheDir, "net/minecraft/minecraft/"+version+"/"+version+".json");
-        File versionJar = new File(cacheDir, "net/minecraft/minecraft/"+version+"/minecraft-"+version+"-server.jar");
-        File versionMappings = new File(cacheDir, "net/minecraft/minecraft/"+version+"/server-mappings.txt");
-        File versionJarRemap = new File(cacheDir, "net/minecraft/minecraft/"+version+"/minecraft-"+version+"-server-remaped.jar");
+        File versionIndex = dirLayout.getVersionIndexFile(version);
+        File versionJar = dirLayout.getMinecraftFile(version, false);
+        File versionMappings = dirLayout.getMappingFile(version, false);
+        File versionJarRemap = dirLayout.getMinecraftRepackFile(version, false);
         if (!versionIndex.exists() || !versionJar.exists() || !versionMappings.exists() || !versionJarRemap.exists()) {
             JsonObject jsonObject = getVersionManifest(version);
             JsonObject downloads = jsonObject.getAsJsonObject("downloads");
             if (!downloads.has("client_mappings")) {
-                throw new RepackException("Missing Obfuscation mapping in current version!");
+                throw new RepackException("Missing Obfuscation mapping in the current version!");
             }
             if (!versionJar.exists()) {
                 this.out.println("Downloading server jar...");
@@ -61,7 +77,7 @@ public class Repacker {
             }
             Mapping mapping = getMappings(versionMappings, downloads.getAsJsonObject("server_mappings").get("url").getAsString(), "server");
             this.out.println("Remapping server jar...");
-            mapping.remap(versionJar, versionJarRemap);
+            mapping.remap(versionJar, versionJarRemap, new LogPatcher("server"));
         }
     }
 
@@ -69,7 +85,7 @@ public class Repacker {
         if (version == null) {
             throw new NullPointerException("Version cannot be null!");
         }
-        File versionIndex = new File(cacheDir, "net/minecraft/minecraft/"+version+"/"+version+".json");
+        File versionIndex = dirLayout.getVersionIndexFile(version);
         if (versionIndex.exists()) {
             try {
                 return (JsonObject) JsonParser.parseString(Utils.readAll(new FileInputStream(versionIndex)));
@@ -78,7 +94,7 @@ public class Repacker {
             }
         }
 
-        File verCache = new File(cacheDir, "index-cache.json");
+        File verCache = dirLayout.getIndexCache();
         if (cache.isEmpty() && verCache.exists()) {
             try {
                 JsonObject jsonObject = (JsonObject) JsonParser.parseString(Utils.readAll(new FileInputStream(versionIndex)));
@@ -106,20 +122,20 @@ public class Repacker {
         }
         this.out.println("Downloading "+version+" manifest...");
         String manifest = Utils.get(verURL);
-        new File(cacheDir ,"net/minecraft/minecraft/"+version).mkdirs();
+        dirLayout.generateDirsFor(version);
         Files.write(versionIndex.toPath(), manifest.getBytes(StandardCharsets.UTF_8));
         return (JsonObject) JsonParser.parseString(manifest);
     }
 
     public Mapping getClientMappings(String version) throws IOException {
-        File versionMappings = new File(cacheDir, "net/minecraft/minecraft/"+version+"/client-mappings.txt");
+        File versionMappings = dirLayout.getMappingFile(version, true);
         JsonObject jsonObject = getVersionManifest(version);
         JsonObject downloads = jsonObject.getAsJsonObject("downloads");
         return getMappings(versionMappings, downloads.getAsJsonObject("client_mappings").get("url").getAsString(), "client");
     }
 
     public Mapping getServerMappings(String version) throws IOException {
-        File versionMappings = new File(cacheDir, "net/minecraft/minecraft/"+version+"/server-mappings.txt");
+        File versionMappings = dirLayout.getMappingFile(version, false);
         JsonObject jsonObject = getVersionManifest(version);
         JsonObject downloads = jsonObject.getAsJsonObject("downloads");
         return getMappings(versionMappings, downloads.getAsJsonObject("server_mappings").get("url").getAsString(), "server");
@@ -136,14 +152,66 @@ public class Repacker {
     }
 
     public File getClientRemappedFile(String version) {
-        return new File(cacheDir, "net/minecraft/minecraft/"+version+"/minecraft-"+version+"-remaped.jar");
+        return dirLayout.getMinecraftRepackFile(version, true);
     }
 
     public File getServerRemappedFile(String version) {
-        return new File(cacheDir, "net/minecraft/minecraft/"+version+"/minecraft-"+version+"-server-remaped.jar");
+        return dirLayout.getMinecraftRepackFile(version, false);
     }
 
+    public File getClientMappingFile(String version) {
+        return dirLayout.getMappingFile(version, true);
+    }
+
+    public File getServerMappingFile(String version) {
+        return dirLayout.getMappingFile(version, false);
+    }
+
+    /**
+     * Use {@link #getDirLayout()} instead
+     */
+    @Deprecated
     public File getVersionRemapDir(String version) {
-        return new File(cacheDir, "net/minecraft/minecraft/"+version);
+        return dirLayout.getVersionIndexFile(version).getParentFile();
+    }
+
+    public DirLayout getDirLayout() {
+        return dirLayout;
+    }
+
+    /**
+     * Indicate revision of generated bytecode by repacker
+     * Increment each time the process of repack is modified
+     */
+    public final int repackRevision() {
+        return Utils.REPACK_REVISION;
+    }
+
+    private class LogPatcher implements PostPatcher {
+        private PostPatcher postPatcher;
+        private String side;
+
+        private LogPatcher(String side) {
+            this.postPatcher = null;
+            this.side = side;
+        }
+
+        private LogPatcher(PostPatcher postPatcher,String side) {
+            this.postPatcher = postPatcher;
+            this.side = side;
+        }
+
+        @Override
+        public ClassVisitor patch(ClassVisitor classVisitor) {
+            return postPatcher == null ? classVisitor : postPatcher.patch(classVisitor);
+        }
+
+        @Override
+        public void post(Map<String, byte[]> remapJar) {
+            if (postPatcher != null) {
+                postPatcher.post(remapJar);
+            }
+            out.println("Writing "+side+" jar...");
+        }
     }
 }
