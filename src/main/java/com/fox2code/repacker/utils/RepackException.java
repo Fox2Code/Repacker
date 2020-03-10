@@ -1,4 +1,4 @@
-package com.fox2code.repacker;
+package com.fox2code.repacker.utils;
 
 import java.io.IOException;
 
@@ -8,10 +8,10 @@ public class RepackException extends IOException {
     }
 
     public RepackException(String message) {
-        super(message);
+        super(ConsoleColors.RED_BOLD + message);
     }
 
     public RepackException(String message, Throwable cause) {
-        super(message, cause);
+        super(ConsoleColors.RED_BOLD + message, cause);
     }
 }

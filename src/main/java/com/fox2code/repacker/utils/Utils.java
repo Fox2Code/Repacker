@@ -1,5 +1,7 @@
-package com.fox2code.repacker;
+package com.fox2code.repacker.utils;
 
+import com.fox2code.repacker.patchers.BytecodeFixer;
+import com.fox2code.repacker.patchers.PostPatcher;
 import com.fox2code.repacker.rebuild.ClassData;
 import com.fox2code.repacker.rebuild.ClassDataProvider;
 import org.objectweb.asm.ClassReader;
@@ -19,17 +21,17 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 public class Utils {
-    static final int REPACK_REVISION = 1;
+    public static final int REPACK_REVISION = 1;
     private static final int THREADS = 4;
     public static boolean debugRemapping = "true".equalsIgnoreCase(System.getProperty("repacker.debug.remap", System.getProperty("repacker.debug")));
     private static final String charset = "UTF-8";
-    static byte[] cjo;
+    public static byte[] cjo;
 
     static {
         try {
             InputStream inputStream = Utils.class.getClassLoader().getResourceAsStream("ClientJarOnly.class.repacker");
             if (inputStream == null) {
-                System.err.println("Err: missing /ClientJarOnly.class.repacker");
+                System.err.println(ConsoleColors.RED_BRIGHT + "Err: missing /ClientJarOnly.class.repacker");
             } else {
                 cjo = readAllBytes(inputStream);
             }
@@ -86,7 +88,7 @@ public class Utils {
         int nRead;
         byte[] data = new byte[16384];
 
-        while ((nRead = inputStream.read(data, 0, data.length)) != -1) {
+        while (( nRead = inputStream.read(data, 0, data.length)) != -1) {
             buffer.write(data, 0, nRead);
         }
 
@@ -166,7 +168,7 @@ public class Utils {
                 if (threads[t] != null) try {
                     threads[t].join();
                 } catch (InterruptedException ie) {
-                    throw new RepackException("Interupted", ie);
+                    throw new RepackException(ConsoleColors.RED_BRIGHT + "Interupted", ie);
                 }
                 (threads[t] = new Thread(() -> {
                     ClassReader classReader = new ClassReader(entry.getValue());
@@ -228,7 +230,7 @@ public class Utils {
                 newName = this.mapMethodName(owner, name, descriptor, false);
             }
             if (oldOwner != null && name.equals(newName) && root) {
-                System.out.println("DEBUG: Method resolution failed for -> ("+oldOwner+") "+this.mapType(oldOwner)+"."+name+this.mapDesc(descriptor)+
+                System.out.println(ConsoleColors.YELLOW_BRIGHT + "DEBUG: Method resolution failed for -> ("+oldOwner+") "+this.mapType(oldOwner)+"."+name+this.mapDesc(descriptor)+
                         (cdp.getClassData(oldOwner).getSuperclass().getName().equals("java/lang/Object") ? " with no parent": ""));
             }
             return newName;
@@ -258,7 +260,7 @@ public class Utils {
                 newName = this.mapFieldName(owner, name, descriptor, false);
             }
             if (oldOwner != null && name.equals(newName) && root) {
-                System.out.println("DEBUG: Field resolution failed for "+this.mapType(oldOwner)+"#"+name+" "+this.mapDesc(descriptor)+
+                System.out.println(ConsoleColors.YELLOW_BRIGHT + "DEBUG: Field resolution failed for "+this.mapType(oldOwner)+"#"+name+" "+this.mapDesc(descriptor)+
                         (cdp.getClassData(oldOwner).getSuperclass().getName().equals("java/lang/Object") ? " with no parent": ""));
             }
             return newName;

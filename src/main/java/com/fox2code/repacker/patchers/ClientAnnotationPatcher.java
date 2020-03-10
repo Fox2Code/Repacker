@@ -1,5 +1,6 @@
-package com.fox2code.repacker;
+package com.fox2code.repacker.patchers;
 
+import com.fox2code.repacker.utils.Utils;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
