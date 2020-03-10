@@ -1,5 +1,6 @@
 package com.fox2code.repacker;
 
+import com.fox2code.repacker.utils.PostPatcher;
 import org.objectweb.asm.ClassVisitor;
 
 import java.util.Iterator;
