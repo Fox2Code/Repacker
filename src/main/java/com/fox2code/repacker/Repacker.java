@@ -64,6 +64,16 @@ public class Repacker {
         }
     }
 
+    public void downloadClient(String version) throws IOException {
+        File versionJar = dirLayout.getMinecraftFile(version, true);
+        if (!versionJar.exists()) {
+            JsonObject jsonObject = getVersionManifest(version);
+            JsonObject downloads = jsonObject.getAsJsonObject("downloads");
+            this.out.println("Downloading client jar...");
+            Utils.download(downloads.getAsJsonObject("client").get("url").getAsString(), new FileOutputStream(versionJar));
+        }
+    }
+
     public void repackServer(String version) throws IOException {
         this.repackServer(version, null);
     }
@@ -86,6 +96,16 @@ public class Repacker {
             Mapping mapping = getMappings(versionMappings, downloads.getAsJsonObject("server_mappings").get("url").getAsString(), "server");
             this.out.println("Remapping server jar...");
             mapping.remap(versionJar, versionJarRemap, new LogPatcher(postPatcher, "server"));
+        }
+    }
+
+    public void downloadServer(String version) throws IOException {
+        File versionJar = dirLayout.getMinecraftFile(version, false);
+        if (!versionJar.exists()) {
+            JsonObject jsonObject = getVersionManifest(version);
+            JsonObject downloads = jsonObject.getAsJsonObject("downloads");
+            this.out.println("Downloading client jar...");
+            Utils.download(downloads.getAsJsonObject("server").get("url").getAsString(), new FileOutputStream(versionJar));
         }
     }
 
@@ -157,6 +177,14 @@ public class Repacker {
         String mappings = Utils.get(fallBack);
         Files.write(file.toPath(), mappings.getBytes(StandardCharsets.UTF_8));
         return new Mapping(mappings);
+    }
+
+    public File getClientFile(String version) {
+        return dirLayout.getMinecraftFile(version, true);
+    }
+
+    public File getServerFile(String version) {
+        return dirLayout.getMinecraftFile(version, false);
     }
 
     public File getClientRemappedFile(String version) {
