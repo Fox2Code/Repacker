@@ -46,11 +46,7 @@ repositories {
 }
 
 dependencies {
-<<<<<<< HEAD
     implementation 'com.fox2code:repacker:1.3.1'
-=======
-    implementation 'com.fox2code:repacker:1.3.0'
->>>>>>> d8e5d743882e7a4a55b86e754fb893751b75cce8
 }
 ```
 
@@ -66,10 +62,6 @@ dependencies {
   	<dependency>
 	    <groupId>com.fox2code</groupId>
 	    <artifactId>repacker</artifactId>
-<<<<<<< HEAD
 	    <version>1.3.1</version>
-=======
-	    <version>1.3.0</version>
->>>>>>> d8e5d743882e7a4a55b86e754fb893751b75cce8
 	</dependency>
 ```
