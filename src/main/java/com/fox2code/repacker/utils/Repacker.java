@@ -37,6 +37,10 @@ public class Repacker {
     }
 
     public void repackClient(String version) throws IOException {
+        this.repackClient(version, null);
+    }
+
+    public void repackClient(String version,PostPatcher postPatcher) throws IOException {
         File versionIndex = dirLayout.getVersionIndexFile(version);
         File versionJar = dirLayout.getMinecraftFile(version, true);
         File versionMappings = dirLayout.getMappingFile(version, true);
@@ -57,11 +61,25 @@ public class Repacker {
             this.out.println(Main.colors.YELLOW_BRIGHT + "Parsing mapping...");
             ClientAnnotationPatcher clientAnnotationPatcher = new ClientAnnotationPatcher(mapping, mappingSrv);
             this.out.println(Main.colors.YELLOW_BRIGHT + "Remapping client jar...");
-            mapping.remap(versionJar, versionJarRemap, new LogPatcher(clientAnnotationPatcher, "client"));
+            mapping.remap(versionJar, versionJarRemap, new LogPatcher(clientAnnotationPatcher, postPatcher, "client"));
+        }
+    }
+
+    public void downloadClient(String version) throws IOException {
+        File versionJar = dirLayout.getMinecraftFile(version, true);
+        if (!versionJar.exists()) {
+            JsonObject jsonObject = getVersionManifest(version);
+            JsonObject downloads = jsonObject.getAsJsonObject("downloads");
+            this.out.println(Main.colors.YELLOW_BRIGHT + "Downloading client jar...");
+            Utils.download(downloads.getAsJsonObject("client").get("url").getAsString(), new FileOutputStream(versionJar));
         }
     }
 
     public void repackServer(String version) throws IOException {
+        this.repackServer(version, null);
+    }
+
+    public void repackServer(String version,PostPatcher postPatcher) throws IOException {
         File versionIndex = dirLayout.getVersionIndexFile(version);
         File versionJar = dirLayout.getMinecraftFile(version, false);
         File versionMappings = dirLayout.getMappingFile(version, false);
@@ -77,8 +95,19 @@ public class Repacker {
                 Utils.download(downloads.getAsJsonObject("server").get("url").getAsString(), new FileOutputStream(versionJar));
             }
             Mapping mapping = getMappings(versionMappings, downloads.getAsJsonObject("server_mappings").get("url").getAsString(), "server");
+
             this.out.println(Main.colors.YELLOW_BRIGHT + "Remapping server jar...");
-            mapping.remap(versionJar, versionJarRemap, new LogPatcher("server"));
+            mapping.remap(versionJar, versionJarRemap, new LogPatcher(postPatcher, "server"));
+        }
+    }
+
+    public void downloadServer(String version) throws IOException {
+        File versionJar = dirLayout.getMinecraftFile(version, false);
+        if (!versionJar.exists()) {
+            JsonObject jsonObject = getVersionManifest(version);
+            JsonObject downloads = jsonObject.getAsJsonObject("downloads");
+            this.out.println(Main.colors.YELLOW_BRIGHT + "Downloading client jar...");
+            Utils.download(downloads.getAsJsonObject("server").get("url").getAsString(), new FileOutputStream(versionJar));
         }
     }
 
@@ -152,6 +181,14 @@ public class Repacker {
         return new Mapping(mappings);
     }
 
+    public File getClientFile(String version) {
+        return dirLayout.getMinecraftFile(version, true);
+    }
+
+    public File getServerFile(String version) {
+        return dirLayout.getMinecraftFile(version, false);
+    }
+
     public File getClientRemappedFile(String version) {
         return dirLayout.getMinecraftRepackFile(version, true);
     }
@@ -190,27 +227,50 @@ public class Repacker {
 
     private class LogPatcher implements PostPatcher {
         private PostPatcher postPatcher;
+        private PostPatcher postPatcherSec;
         private String side;
 
         private LogPatcher(String side) {
             this.postPatcher = null;
+            this.postPatcherSec = null;
             this.side = side;
         }
 
         private LogPatcher(PostPatcher postPatcher,String side) {
             this.postPatcher = postPatcher;
+            this.postPatcherSec = null;
+            this.side = side;
+        }
+
+        private LogPatcher(PostPatcher postPatcher, PostPatcher postPatcherSec,String side) {
+            if (postPatcher == null && postPatcherSec != null) {
+                this.postPatcher = postPatcherSec;
+                this.postPatcherSec = null;
+            } else {
+                this.postPatcher = postPatcher;
+                this.postPatcherSec = postPatcherSec;
+            }
             this.side = side;
         }
 
         @Override
         public ClassVisitor patch(ClassVisitor classVisitor) {
-            return postPatcher == null ? classVisitor : postPatcher.patch(classVisitor);
+            if (postPatcher != null) {
+                classVisitor = postPatcher.patch(classVisitor);
+                if (postPatcherSec != null) {
+                    classVisitor = postPatcherSec.patch(classVisitor);
+                }
+            }
+            return classVisitor;
         }
 
         @Override
         public void post(Map<String, byte[]> remapJar) {
             if (postPatcher != null) {
                 postPatcher.post(remapJar);
+                if (postPatcherSec != null) {
+                    postPatcherSec.post(remapJar);
+                }
             }
             out.println(Main.colors.YELLOW_BRIGHT + "Writing "+side+" jar...");
         }

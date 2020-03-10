@@ -11,11 +11,11 @@
 
 example:
 
-`java -jar Repacker.jar . 1.14.4` to repack MC 1.14.4 client
+`java -jar Repacker.jar . 1.15.2` to repack MC 1.15.2 client
 
 and
 
-`java -jar Repacker.jar . 1.14.4-server` to repack MC 1.14.4 server
+`java -jar Repacker.jar . 1.15.2-server` to repack MC 1.15.2 server
 
 pre-release version names are VER-preX (Ex: 1.15-pre1)
 
@@ -27,8 +27,8 @@ example:
 import com.fox2code.repacker.utils.Repacker;
 import java.io.File;
 
-String version = "1.14.4";
-Repacker repacker = new Repacker(new File("cache"));
+String version = "1.15.2";
+Repacker repacker = new Repacker(new DirLayout.FlatDirLayout(new File("cache")));
 repacker.repackClient(version);
 File repackedClient = repacker.getClientRemappedFile(version);
 ```
@@ -46,7 +46,11 @@ repositories {
 }
 
 dependencies {
+<<<<<<< HEAD
     implementation 'com.fox2code:repacker:1.3.1'
+=======
+    implementation 'com.fox2code:repacker:1.3.0'
+>>>>>>> d8e5d743882e7a4a55b86e754fb893751b75cce8
 }
 ```
 
@@ -62,6 +66,10 @@ dependencies {
   	<dependency>
 	    <groupId>com.fox2code</groupId>
 	    <artifactId>repacker</artifactId>
+<<<<<<< HEAD
 	    <version>1.3.1</version>
+=======
+	    <version>1.3.0</version>
+>>>>>>> d8e5d743882e7a4a55b86e754fb893751b75cce8
 	</dependency>
 ```

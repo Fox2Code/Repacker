@@ -12,14 +12,16 @@ public class Main {
 
     public static void main(String[] args) {
         if (args.length != 2 && (args.length != 3 || !args[0].startsWith("-") || args[0].length() == 1)) {
+
             System.out.println(colors.RED_BOLD + "usage: java -jar Repaker.jar (-parms) <cacheDir> <version>(-server)");
             System.out.println(colors.RED_BOLD + "    -f => force repackage of the .jar");
             System.out.println(colors.RED_BOLD + "    -m => use maven dir layout");
             System.out.println(colors.RED_BOLD + "    -c => clean temporary files when finished");
+            System.out.println(colors.RED_BOLD + "    -d => download only without repack");
             return;
         }
         int d = args.length - 2;
-        boolean force = false, maven = false, clean = false;
+        boolean force = false, maven = false, clean = false, download = false;
         if (d != 0) {
             String p = args[0];
             int i = 1;
@@ -38,6 +40,9 @@ public class Main {
                         break;
                     case 'c':
                         clean = true;
+                        break;
+                    case 'd':
+                        download = true;
                         break;
                 }
                 i++;
@@ -58,26 +63,48 @@ public class Main {
             DirLayout dirLayout = repacker.getDirLayout();
             if (server) {
                 if (force) {
-                    repacker.getServerRemappedFile(args[d+1]).delete();
+                    if (download) {
+                        repacker.getServerFile(args[d+1]).delete();
+                    } else {
+                        repacker.getServerRemappedFile(args[d+1]).delete();
+                    }
                 }
-                repacker.repackServer(args[d+1]);
+                if (download) {
+                    repacker.downloadServer(args[d+1]);
+                } else {
+                    repacker.repackServer(args[d + 1]);
+                }
                 if (clean) {
-                    System.out.println(colors.YELLOW_BRIGHT + "Cleaning files...");
-                    dirLayout.getMinecraftFile(args[d+1], false).delete();
+                    System.out.println(colors.YELLOW_BRIGHT +"Cleaning files...");
+                    if (!download) {
+                        dirLayout.getMinecraftFile(args[d + 1], false).delete();
+                    }
                 }
             } else {
                 if (force) {
-                    repacker.getClientRemappedFile(args[d+1]).delete();
+                    if (download) {
+                        repacker.getClientFile(args[d+1]).delete();
+                    } else {
+                        repacker.getClientRemappedFile(args[d+1]).delete();
+                    }
                 }
-                repacker.repackClient(args[d+1]);
+                if (download) {
+                    repacker.downloadClient(args[d+1]);
+                } else {
+                    repacker.repackClient(args[d + 1]);
+                }
                 if (clean) {
                     System.out.println(colors.YELLOW_BRIGHT + "Cleaning files...");
-                    dirLayout.getMinecraftFile(args[d+1], true).delete();
-                    dirLayout.getMappingFile(args[d+1], true).delete();
+                    if (!download) {
+                        dirLayout.getMinecraftFile(args[d + 1], true).delete();
+                        dirLayout.getMappingFile(args[d + 1], true).delete();
+                    }
                 }
             }
             if (clean) {
-                dirLayout.getMappingFile(args[d+1], false).delete();
+                if (!download) {
+                    dirLayout.getMappingFile(args[d + 1], false).delete();
+                }
                 dirLayout.getVersionIndexFile(args[d+1]).delete();
                 dirLayout.getIndexCache().delete();
             }
