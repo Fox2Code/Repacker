@@ -24,7 +24,7 @@ pre-release version names are VER-preX (Ex: 1.15-pre1)
 example:
 
 ```Java
-import com.fox2code.repacker.utils.Repacker;
+import com.fox2code.repacker.Repacker;
 import java.io.File;
 
 String version = "1.15.2";

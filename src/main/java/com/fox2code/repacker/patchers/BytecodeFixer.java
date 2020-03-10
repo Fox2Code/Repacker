@@ -1,4 +1,4 @@
-package com.fox2code.repacker.utils;
+package com.fox2code.repacker.patchers;
 
 import com.fox2code.repacker.utils.Utils;
 import org.objectweb.asm.*;
