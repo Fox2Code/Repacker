@@ -30,3 +30,9 @@ shadowJar {
         attributes 'Main-Class': 'com.fox2code.repacker.Main'
     }
 }
+
+(tasks.register("sourcesJar", Jar) {
+    classifier = 'sources'
+}.get() as Jar).from getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName("main").allSource
+
+build.dependsOn(sourcesJar)
