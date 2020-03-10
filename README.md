@@ -25,10 +25,11 @@ example:
 
 ```Java
 import com.fox2code.repacker.Repacker;
+import com.fox2code.repacker.layout.FlatDirLayout;
 import java.io.File;
 
 String version = "1.15.2";
-Repacker repacker = new Repacker(new DirLayout.FlatDirLayout(new File("cache")));
+Repacker repacker = new Repacker(new FlatDirLayout(new File("cache")));
 repacker.repackClient(version);
 File repackedClient = repacker.getClientRemappedFile(version);
 ```
