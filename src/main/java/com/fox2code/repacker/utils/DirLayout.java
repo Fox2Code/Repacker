@@ -1,4 +1,4 @@
-package com.fox2code.repacker;
+package com.fox2code.repacker.utils;
 
 import java.io.File;
 

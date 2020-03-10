@@ -1,4 +1,4 @@
-package com.fox2code.repacker;
+package com.fox2code.repacker.utils;
 
 import org.objectweb.asm.ClassVisitor;
 

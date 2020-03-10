@@ -1,4 +1,4 @@
-package com.fox2code.repacker;
+package com.fox2code.repacker.utils;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

@@ -24,7 +24,7 @@ pre-release version names are VER-preX (Ex: 1.15-pre1)
 example:
 
 ```Java
-import com.fox2code.repacker.Repacker;
+import com.fox2code.repacker.utils.Repacker;
 import java.io.File;
 
 String version = "1.14.4";
@@ -46,7 +46,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.fox2code:repacker:1.2.0'
+    implementation 'com.fox2code:repacker:1.3.1'
 }
 ```
 
@@ -62,6 +62,6 @@ dependencies {
   	<dependency>
 	    <groupId>com.fox2code</groupId>
 	    <artifactId>repacker</artifactId>
-	    <version>1.2.0</version>
+	    <version>1.3.1</version>
 	</dependency>
 ```

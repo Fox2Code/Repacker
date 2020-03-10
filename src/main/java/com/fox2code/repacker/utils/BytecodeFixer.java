@@ -1,5 +1,6 @@
-package com.fox2code.repacker;
+package com.fox2code.repacker.utils;
 
+import com.fox2code.repacker.utils.Utils;
 import org.objectweb.asm.*;
 
 import java.util.HashMap;

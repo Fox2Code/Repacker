@@ -1,6 +1,6 @@
 package com.fox2code.repacker.tests;
 
-import com.fox2code.repacker.Utils;
+import com.fox2code.repacker.utils.Utils;
 import org.junit.Test;
 
 public class Tests {
