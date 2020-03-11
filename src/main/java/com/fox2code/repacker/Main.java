@@ -11,12 +11,13 @@ import java.io.IOException;
 public class Main {
     public static void main(String[] args) {
         if (args.length != 2 && (args.length != 3 || !args[0].startsWith("-") || args[0].length() == 1)) {
+            String color = args.length == 0 ? ConsoleColors.BOLD : ConsoleColors.RED_BOLD;
 
-            System.out.println(ConsoleColors.RED_BOLD + "usage: java -jar Repaker.jar (-parms) <cacheDir> <version>(-server)");
-            System.out.println(ConsoleColors.RED_BOLD + "    -f => force repackage of the .jar");
-            System.out.println(ConsoleColors.RED_BOLD + "    -m => use maven dir layout");
-            System.out.println(ConsoleColors.RED_BOLD + "    -c => clean temporary files when finished");
-            System.out.println(ConsoleColors.RED_BOLD + "    -d => download only without repack");
+            System.out.println(color + "usage: java -jar Repaker.jar (-parms) <cacheDir> <version>(-server)");
+            System.out.println(color + "    -f => force repackage of the .jar");
+            System.out.println(color + "    -m => use maven dir layout");
+            System.out.println(color + "    -c => clean temporary files when finished");
+            System.out.println(color + "    -d => download only without repack");
             return;
         }
         int d = args.length - 2;

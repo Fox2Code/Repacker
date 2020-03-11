@@ -4,6 +4,7 @@ package com.fox2code.repacker.utils;
 public class ConsoleColors {
     // Reset
     public static final String RESET = "\033[0m";  // Text Reset
+    public static final String BOLD = "\033[1m";  // Bold effect
 
     // Regular Colors
     public static final String BLACK = "\033[0;30m";   // BLACK
