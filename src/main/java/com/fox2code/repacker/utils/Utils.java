@@ -1,6 +1,7 @@
 package com.fox2code.repacker.utils;
 
 import com.fox2code.repacker.patchers.BytecodeFixer;
+import com.fox2code.repacker.patchers.MthOptimiser;
 import com.fox2code.repacker.patchers.PostPatcher;
 import com.fox2code.repacker.rebuild.ClassData;
 import com.fox2code.repacker.rebuild.ClassDataProvider;
@@ -21,7 +22,7 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 public class Utils {
-    public static final int REPACK_REVISION = 1;
+    public static final int REPACK_REVISION = 2;
     private static final int THREADS = 4;
     public static boolean debugRemapping = "true".equalsIgnoreCase(System.getProperty("repacker.debug.remap", System.getProperty("repacker.debug")));
     private static final String charset = "UTF-8";
@@ -189,6 +190,7 @@ public class Utils {
                 throw new RepackException("Interupted", ie);
             }
         }
+        MthOptimiser.postOptimise(remap);
         remap.put("META-INF/MANIFEST.MF", ("Manifest-Version: 1.0\nRepack-Revision: "+REPACK_REVISION+"\n").getBytes(StandardCharsets.UTF_8));
         postPatcher.post(remap);
         Utils.writeZIP(remap, new FileOutputStream(out));

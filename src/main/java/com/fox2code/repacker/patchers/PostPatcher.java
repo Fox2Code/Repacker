@@ -1,10 +1,11 @@
 package com.fox2code.repacker.patchers;
 
 import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.Opcodes;
 
 import java.util.Map;
 
-public interface PostPatcher {
+public interface PostPatcher extends Opcodes {
     PostPatcher NONE = new PostPatcher() {
         @Override
         public ClassVisitor patch(ClassVisitor classVisitor) {
