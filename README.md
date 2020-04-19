@@ -47,7 +47,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.fox2code:repacker:1.3.2'
+    implementation 'com.fox2code:repacker:1.3.3'
 }
 ```
 
