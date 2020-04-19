@@ -63,6 +63,6 @@ dependencies {
   	<dependency>
 	    <groupId>com.fox2code</groupId>
 	    <artifactId>repacker</artifactId>
-	    <version>1.3.2</version>
+	    <version>1.3.3</version>
 	</dependency>
 ```
