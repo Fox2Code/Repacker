@@ -21,9 +21,9 @@ import java.util.Map;
   * Repacker parrot editions
  */
 public class Repacker {
-    private HashMap<String, String> cache;
-    private PrintStream out;
-    private DirLayout dirLayout;
+    private final HashMap<String, String> cache;
+    private final PrintStream out;
+    private final DirLayout dirLayout;
 
     @Deprecated
     public Repacker(File cacheDir) {
@@ -235,9 +235,9 @@ public class Repacker {
     }
 
     private class LogPatcher implements PostPatcher {
-        private PostPatcher postPatcher;
-        private PostPatcher postPatcherSec;
-        private String side;
+        private final PostPatcher postPatcher;
+        private final PostPatcher postPatcherSec;
+        private final String side;
 
         private LogPatcher(String side) {
             this.postPatcher = null;

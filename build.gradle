@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'com.fox2code'
-version '1.3.2'
+version '1.3.3'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -14,7 +14,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.ow2.asm:asm-commons:7.3.1'
+    implementation 'org.ow2.asm:asm-commons:8.0.1'
     implementation 'com.google.code.gson:gson:2.8.6'
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }

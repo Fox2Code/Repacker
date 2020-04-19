@@ -6,14 +6,15 @@ import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public class ClientAnnotationPatcher implements PostPatcher, Opcodes {
-    private Mapping.ReverseMapping client;
-    private Mapping.ReverseMapping server;
+    private final Mapping.ReverseMapping client;
+    private final Mapping.ReverseMapping server;
 
-    private HashMap<String, Boolean> cache;
+    private static String repackerCst() {
+        return "repacker"; // Hacky way to not get repacked by shadowJar
+    }
 
     public ClientAnnotationPatcher(Mapping client,Mapping server) {
         this.client = client.getReverseMapping();
@@ -28,7 +29,7 @@ public class ClientAnnotationPatcher implements PostPatcher, Opcodes {
     @Override
     public void post(Map<String, byte[]> remapJar) {
         if (Utils.cjo != null) {
-            remapJar.put("com/fox2code/repacker/ClientJarOnly.class", Utils.cjo);
+            remapJar.put("com/fox2code/"+repackerCst()+"/ClientJarOnly.class", Utils.cjo);
         }
     }
 
@@ -59,7 +60,7 @@ public class ClientAnnotationPatcher implements PostPatcher, Opcodes {
             this.clName = name;
             if (isClientOnly(name)) {
                 this.skip = true;
-                super.visitAnnotation("Lcom/fox2code/repacker/ClientJarOnly;", false).visitEnd();
+                super.visitAnnotation("Lcom/fox2code/"+repackerCst()+"/ClientJarOnly;", false).visitEnd();
             } else if ((access & ACC_ANNOTATION) != 0) {
                 this.skip = true;
             }
@@ -70,7 +71,7 @@ public class ClientAnnotationPatcher implements PostPatcher, Opcodes {
             FieldVisitor fieldVisitor = super.visitField(access, name, descriptor, signature, value);
             if (!skip) {
                 if (isClientOnly(this.clName, name)) {
-                    fieldVisitor.visitAnnotation("Lcom/fox2code/repacker/ClientJarOnly;", false).visitEnd();
+                    fieldVisitor.visitAnnotation("Lcom/fox2code/"+repackerCst()+"/ClientJarOnly;", false).visitEnd();
                 }
             }
             return fieldVisitor;
@@ -81,7 +82,7 @@ public class ClientAnnotationPatcher implements PostPatcher, Opcodes {
             MethodVisitor methodVisitor = super.visitMethod(access, name, descriptor, signature, exceptions);
             if (!skip) {
                 if (isClientOnly(this.clName, name, descriptor)) {
-                    methodVisitor.visitAnnotation("Lcom/fox2code/repacker/ClientJarOnly;", false).visitEnd();
+                    methodVisitor.visitAnnotation("Lcom/fox2code/"+repackerCst()+"/ClientJarOnly;", false).visitEnd();
                 }
             }
             return methodVisitor;
