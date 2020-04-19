@@ -19,6 +19,8 @@ and
 
 pre-release version names are VER-preX (Ex: 1.15-pre1)
 
+The id of `20w14∞` is actually `20w14infinite`
+
 ### Java
 
 example:
