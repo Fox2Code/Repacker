@@ -11,13 +11,16 @@ import java.io.IOException;
 public class Main {
     public static void main(String[] args) {
         if (args.length != 2 && (args.length != 3 || !args[0].startsWith("-") || args[0].length() == 1)) {
-            String color = args.length == 0 ? ConsoleColors.BOLD : ConsoleColors.RED_BOLD;
+            String color = (args.length == 0 ||
+                    (args.length == 1 && ("-h".equals(args[0]) || "--help".equals(args[0]))))
+                    ? ConsoleColors.BOLD : ConsoleColors.RED_BOLD;
 
+            System.out.println(color + "usage: java -jar Repaker.jar --help");
             System.out.println(color + "usage: java -jar Repaker.jar (-parms) <cacheDir> <version>(-server)");
             System.out.println(color + "    -f => force repackage of the .jar");
             System.out.println(color + "    -m => use maven dir layout");
             System.out.println(color + "    -c => clean temporary files when finished");
-            System.out.println(color + "    -d => download only without repack");
+            System.out.println(color + "    -d => download only without repack" + ConsoleColors.RESET);
             return;
         }
         int d = args.length - 2;
@@ -75,7 +78,7 @@ public class Main {
                     repacker.repackServer(args[d + 1]);
                 }
                 if (clean) {
-                    System.out.println(ConsoleColors.YELLOW_BRIGHT +"Cleaning files...");
+                    System.out.println(ConsoleColors.YELLOW_BRIGHT +"Cleaning files..." + ConsoleColors.RESET);
                     if (!download) {
                         dirLayout.getMinecraftFile(args[d + 1], false).delete();
                     }
@@ -94,7 +97,7 @@ public class Main {
                     repacker.repackClient(args[d + 1]);
                 }
                 if (clean) {
-                    System.out.println(ConsoleColors.YELLOW_BRIGHT + "Cleaning files...");
+                    System.out.println(ConsoleColors.YELLOW_BRIGHT + "Cleaning files..." + ConsoleColors.RESET);
                     if (!download) {
                         dirLayout.getMinecraftFile(args[d + 1], true).delete();
                         dirLayout.getMappingFile(args[d + 1], true).delete();
@@ -112,7 +115,7 @@ public class Main {
             e.printStackTrace();
             System.exit(-1);
         }
-        System.out.println(ConsoleColors.GREEN_BRIGHT + "Finished!");
+        System.out.println(ConsoleColors.GREEN_BRIGHT + "Finished!" + ConsoleColors.RESET);
         System.exit(0);
     }
 }

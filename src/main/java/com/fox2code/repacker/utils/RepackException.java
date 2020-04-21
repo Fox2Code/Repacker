@@ -8,10 +8,10 @@ public class RepackException extends IOException {
     }
 
     public RepackException(String message) {
-        super(ConsoleColors.RED_BOLD + message);
+        super(ConsoleColors.RED_BOLD + message + ConsoleColors.RESET);
     }
 
     public RepackException(String message, Throwable cause) {
-        super(ConsoleColors.RED_BOLD + message, cause);
+        super(ConsoleColors.RED_BOLD + message + ConsoleColors.RESET, cause);
     }
 }

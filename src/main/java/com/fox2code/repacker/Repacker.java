@@ -62,14 +62,14 @@ public class Repacker {
                 throw new RepackException("Missing Obfuscation mapping in the current version!");
             }
             if (!versionJar.exists()) {
-                this.out.println(ConsoleColors.YELLOW_BRIGHT + "Downloading client jar...");
+                this.out.println(ConsoleColors.YELLOW_BRIGHT + "Downloading client jar..." + ConsoleColors.RESET);
                 Utils.download(downloads.getAsJsonObject("client").get("url").getAsString(), new FileOutputStream(versionJar));
             }
             Mapping mapping = getMappings(versionMappings, downloads.getAsJsonObject("client_mappings").get("url").getAsString(), "client");
             Mapping mappingSrv = getMappings(versionMappingsSrv, downloads.getAsJsonObject("server_mappings").get("url").getAsString(), "server");
-            this.out.println(ConsoleColors.YELLOW_BRIGHT + "Parsing mapping...");
+            this.out.println(ConsoleColors.YELLOW_BRIGHT + "Parsing mapping..." + ConsoleColors.RESET);
             ClientAnnotationPatcher clientAnnotationPatcher = new ClientAnnotationPatcher(mapping, mappingSrv);
-            this.out.println(ConsoleColors.YELLOW_BRIGHT + "Remapping client jar...");
+            this.out.println(ConsoleColors.YELLOW_BRIGHT + "Remapping client jar..." + ConsoleColors.RESET);
             mapping.remap(versionJar, versionJarRemap, new LogPatcher(clientAnnotationPatcher, postPatcher, "client"));
         }
     }
@@ -79,7 +79,7 @@ public class Repacker {
         if (!versionJar.exists()) {
             JsonObject jsonObject = getVersionManifest(version);
             JsonObject downloads = jsonObject.getAsJsonObject("downloads");
-            this.out.println(ConsoleColors.YELLOW_BRIGHT + "Downloading client jar...");
+            this.out.println(ConsoleColors.YELLOW_BRIGHT + "Downloading client jar..." + ConsoleColors.RESET);
             Utils.download(downloads.getAsJsonObject("client").get("url").getAsString(), new FileOutputStream(versionJar));
         }
     }
@@ -100,12 +100,12 @@ public class Repacker {
                 throw new RepackException("Missing Obfuscation mapping in the current version!");
             }
             if (!versionJar.exists()) {
-                this.out.println(ConsoleColors.YELLOW_BRIGHT + "Downloading server jar...");
+                this.out.println(ConsoleColors.YELLOW_BRIGHT + "Downloading server jar..." + ConsoleColors.RESET);
                 Utils.download(downloads.getAsJsonObject("server").get("url").getAsString(), new FileOutputStream(versionJar));
             }
             Mapping mapping = getMappings(versionMappings, downloads.getAsJsonObject("server_mappings").get("url").getAsString(), "server");
 
-            this.out.println(ConsoleColors.YELLOW_BRIGHT + "Remapping server jar...");
+            this.out.println(ConsoleColors.YELLOW_BRIGHT + "Remapping server jar..." + ConsoleColors.RESET);
             mapping.remap(versionJar, versionJarRemap, new LogPatcher(postPatcher, "server"));
         }
     }
@@ -115,14 +115,14 @@ public class Repacker {
         if (!versionJar.exists()) {
             JsonObject jsonObject = getVersionManifest(version);
             JsonObject downloads = jsonObject.getAsJsonObject("downloads");
-            this.out.println(ConsoleColors.YELLOW_BRIGHT + "Downloading client jar...");
+            this.out.println(ConsoleColors.YELLOW_BRIGHT + "Downloading client jar..." + ConsoleColors.RESET);
             Utils.download(downloads.getAsJsonObject("server").get("url").getAsString(), new FileOutputStream(versionJar));
         }
     }
 
     public JsonObject getVersionManifest(String version) throws IOException {
         if (version == null) {
-            throw new NullPointerException(ConsoleColors.RED_BOLD + "Version cannot be null!");
+            throw new NullPointerException(ConsoleColors.RED_BOLD + "Version cannot be null!" + ConsoleColors.RESET);
         }
         File versionIndex = dirLayout.getVersionIndexFile(version);
         if (versionIndex.exists()) {
@@ -159,7 +159,7 @@ public class Repacker {
                 throw new RepackException("Missing version entry!");
             }
         }
-        this.out.println(ConsoleColors.YELLOW_BRIGHT + "Downloading "+version+" manifest...");
+        this.out.println(ConsoleColors.YELLOW_BRIGHT + "Downloading "+version+" manifest..." + ConsoleColors.RESET);
         String manifest = Utils.get(verURL);
         dirLayout.generateDirsFor(version);
         Files.write(versionIndex.toPath(), manifest.getBytes(StandardCharsets.UTF_8));
@@ -184,7 +184,7 @@ public class Repacker {
         if (file.exists()) {
             return new Mapping(Utils.readAll(new FileInputStream(file)));
         }
-        this.out.println(ConsoleColors.YELLOW_BRIGHT + "Downloading "+type+" mappings...");
+        this.out.println(ConsoleColors.YELLOW_BRIGHT + "Downloading "+type+" mappings..." + ConsoleColors.RESET);
         String mappings = Utils.get(fallBack);
         Files.write(file.toPath(), mappings.getBytes(StandardCharsets.UTF_8));
         return new Mapping(mappings);
@@ -281,7 +281,7 @@ public class Repacker {
                     postPatcherSec.post(remapJar);
                 }
             }
-            out.println(ConsoleColors.YELLOW_BRIGHT + "Writing "+side+" jar...");//<3<3<3<3<3
+            out.println(ConsoleColors.YELLOW_BRIGHT + "Writing "+side+" jar..." + ConsoleColors.RESET);//<3<3<3<3<3
         }
     }
 }

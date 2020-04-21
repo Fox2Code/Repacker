@@ -13,6 +13,14 @@ public class Tests {
     }
 
     @Test
+    public void testCountParmsOnGenericSignature() {
+        int r;
+        if (1 != (r = Utils.countParms("<T:Ljava/lang/Object;>([TT;)Ljava/util/List<TT;>;"))) {
+            throw new Error("testCountParmsOnGenericSignature countParms result is not 1 (got "+r+")");
+        }
+    }
+
+    @Test
     public void testCountParmsCompare() {
         int r1, r2;
         if ((r1 = Utils.countParms("(Ljava/lang/String;)Ljava/lang/String;")) !=

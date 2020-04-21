@@ -22,7 +22,7 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 public class Utils {
-    public static final int REPACK_REVISION = 2;
+    public static final int REPACK_REVISION = 3;
     private static final int THREADS = 4;
     public static boolean debugRemapping = "true".equalsIgnoreCase(System.getProperty("repacker.debug.remap", System.getProperty("repacker.debug")));
     private static final String charset = "UTF-8";
@@ -32,7 +32,7 @@ public class Utils {
         try {
             InputStream inputStream = Utils.class.getClassLoader().getResourceAsStream("ClientJarOnly.class.repacker");
             if (inputStream == null) {
-                System.err.println(ConsoleColors.RED_BRIGHT + "Err: missing /ClientJarOnly.class.repacker");
+                System.err.println(ConsoleColors.RED_BRIGHT + "Err: missing /ClientJarOnly.class.repacker" + ConsoleColors.RESET);
             } else {
                 cjo = readAllBytes(inputStream);
             }
@@ -169,7 +169,7 @@ public class Utils {
                 if (threads[t] != null) try {
                     threads[t].join();
                 } catch (InterruptedException ie) {
-                    throw new RepackException(ConsoleColors.RED_BRIGHT + "Interupted", ie);
+                    throw new RepackException("Interupted", ie);
                 }
                 (threads[t] = new Thread(() -> {
                     ClassReader classReader = new ClassReader(entry.getValue());
@@ -233,7 +233,7 @@ public class Utils {
             }
             if (oldOwner != null && name.equals(newName) && root) {
                 System.out.println(ConsoleColors.YELLOW_BRIGHT + "DEBUG: Method resolution failed for -> ("+oldOwner+") "+this.mapType(oldOwner)+"."+name+this.mapDesc(descriptor)+
-                        (cdp.getClassData(oldOwner).getSuperclass().getName().equals("java/lang/Object") ? " with no parent": ""));
+                        (cdp.getClassData(oldOwner).getSuperclass().getName().equals("java/lang/Object") ? " with no parent": "") + ConsoleColors.RESET);
             }
             return newName;
         }
@@ -263,7 +263,7 @@ public class Utils {
             }
             if (oldOwner != null && name.equals(newName) && root) {
                 System.out.println(ConsoleColors.YELLOW_BRIGHT + "DEBUG: Field resolution failed for "+this.mapType(oldOwner)+"#"+name+" "+this.mapDesc(descriptor)+
-                        (cdp.getClassData(oldOwner).getSuperclass().getName().equals("java/lang/Object") ? " with no parent": ""));
+                        (cdp.getClassData(oldOwner).getSuperclass().getName().equals("java/lang/Object") ? " with no parent": "") + ConsoleColors.RESET);
             }
             return newName;
         }
@@ -290,17 +290,27 @@ public class Utils {
      */
     public static int countParms(String desc)
     {
-        int i = 1, p = 0,s = 0;
+        int i = 0, p = 0,s = 0;
         boolean valid;
         char c;
-        if (desc.charAt(0) != '(') {
+        if (desc.charAt(i) == '<') {
+            i++;
+            while (i < desc.length()) {
+                if (desc.charAt(i) == '(') {
+                    break;
+                }
+                i++;
+            }
+        }
+        if (desc.charAt(i) != '(') {
             return -1;
         }
+        i++;
         while ((valid = (desc.length() != i)) && (c = desc.charAt(i)) != ')')
         {
             if (c != '[') {
                 p++;
-                if (c == 'L') {
+                if (c == 'L' || c == 'T') {
                     i++;
                     while ((valid = (desc.length() != i)) && ((c = desc.charAt(i)) != ';' || s != 0)) {
                         if ('<' == c) {
