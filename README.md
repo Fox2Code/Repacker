@@ -5,6 +5,10 @@
 
 ## Usage
 
+### Gradle plugin
+
+See [UDK](https://github.com/Fox2Code/UDK)
+
 ### Command line
 
 `java -jar Repaker.jar <cacheDir> <version>(-server)`
@@ -49,7 +53,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.fox2code:repacker:1.3.4'
+    implementation 'com.fox2code:repacker:1.3.5'
 }
 ```
 
@@ -65,6 +69,6 @@ dependencies {
   	<dependency>
 	    <groupId>com.fox2code</groupId>
 	    <artifactId>repacker</artifactId>
-	    <version>1.3.4</version>
+	    <version>1.3.5</version>
 	</dependency>
 ```

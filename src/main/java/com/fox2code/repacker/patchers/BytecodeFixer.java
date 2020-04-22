@@ -19,7 +19,8 @@ public class BytecodeFixer extends ClassVisitor implements Opcodes {
 
     @Override
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-        this.sourceName = name.substring(name.lastIndexOf('/')+1)+".java";
+        int i, i$;
+        this.sourceName = name.substring((i = name.lastIndexOf('/'))+1, (((i$ = name.indexOf('$')) != -1) && i < i$ )? i$ : name.length())+".java";
         this.self = name;
         super.visit(version, access, name, signature == null || signature.indexOf('<') == -1 ? null : signature, superName, interfaces);
     }
@@ -34,10 +35,10 @@ public class BytecodeFixer extends ClassVisitor implements Opcodes {
         final int parms = Utils.countParms(mDescriptor);
         final boolean isStatic = (access & ACC_STATIC) != 0;
         final int limit = Utils.countIndexParms(mDescriptor)+(isStatic?0:1);
-        return new MethodVisitor(ASM7, super.visitMethod(access, mName, mDescriptor, (signature == null ||
-                signature.indexOf('<') == -1 || Utils.countParms(signature) != parms) ? null : signature , exceptions)) {
+        return new MethodVisitor(ASM7, super.visitMethod(access, mName, mDescriptor, (signature == null
+                || Utils.countParms(signature) != parms) ? null : signature , exceptions)) {
             int i;
-            HashMap<Integer, String> parmsNames = new HashMap<>();
+            final HashMap<Integer, String> parmsNames = new HashMap<>();
 
             @Override
             public void visitVarInsn(int opcode, int var) {
@@ -81,6 +82,19 @@ public class BytecodeFixer extends ClassVisitor implements Opcodes {
                 i = 0;
             }
 
+            private String nameFromDesc(String descriptor) {
+                String name = descriptor.substring(descriptor.lastIndexOf('/') + 1, descriptor.lastIndexOf('/') + 2).toLowerCase()
+                        + descriptor.substring(descriptor.lastIndexOf('/') + 2, descriptor.length() - 1);
+                if (descriptor.indexOf(0) == '[') {
+                    if (name.charAt(name.length()-1) == 's') {
+                        name = name + "es";
+                    } else {
+                        name = name + "s";
+                    }
+                }
+                return name;
+            }
+
             @Override
             public void visitLocalVariable(String name, String descriptor, String signature, Label start, Label end, int index) {
                 if (index == 0 && !isStatic) {
@@ -100,8 +114,7 @@ public class BytecodeFixer extends ClassVisitor implements Opcodes {
                                     break;
                             }
                         } else {
-                            name = descriptor.substring(descriptor.lastIndexOf('/') + 1, descriptor.lastIndexOf('/') + 2).toLowerCase()
-                                    + descriptor.substring(descriptor.lastIndexOf('/') + 2, descriptor.length() - 1);
+                            name = nameFromDesc(descriptor);
                         }
                         if (mName.startsWith("getBy") && mName.length() > 5) {
                             name = mName.substring(5,6).toLowerCase()+mName.substring(6);
@@ -118,6 +131,10 @@ public class BytecodeFixer extends ClassVisitor implements Opcodes {
                         }
                     } else {
                         name = (descriptor.charAt(0) == '[' ? "vars" : "var")+index;
+                        if ((descriptor.charAt(0) == 'L' || descriptor.charAt(0) == '[') &&
+                                ! mDescriptor.substring(mDescriptor.indexOf(descriptor)+descriptor.length()).contains(descriptor)) {
+                            name = nameFromDesc(descriptor);
+                        }
                         int i2 = isStatic ? i + 1 : i;
                         if (parms == 3 && i2 > 0 && i2 <= 5 && mDescriptor.startsWith("(DDD)")) {
                             if (mName.toLowerCase().contains("color")) {

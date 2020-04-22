@@ -22,7 +22,7 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 public class Utils {
-    public static final int REPACK_REVISION = 3;
+    public static final int REPACK_REVISION = 4;
     private static final int THREADS = 4;
     public static boolean debugRemapping = "true".equalsIgnoreCase(System.getProperty("repacker.debug.remap", System.getProperty("repacker.debug")));
     private static final String charset = "UTF-8";
@@ -336,17 +336,27 @@ public class Utils {
 
     public static int countIndexParms(String desc)
     {
-        int i = 1, in = 0,s = 0;
+        int i = 0, in = 0,s = 0;
         boolean valid;
         char c;
-        if (desc.charAt(0) != '(') {
+        if (desc.charAt(i) == '<') {
+            i++;
+            while (i < desc.length()) {
+                if (desc.charAt(i) == '(') {
+                    break;
+                }
+                i++;
+            }
+        }
+        if (desc.charAt(i) != '(') {
             return -1;
         }
+        i++;
         while ((valid = (desc.length() != i)) && (c = desc.charAt(i)) != ')')
         {
             if (c != '[') {
                 in++;
-                if (c == 'L') {
+                if (c == 'L' || c == 'T') {
                     i++;
                     while ((valid = (desc.length() != i)) && ((c = desc.charAt(i)) != ';' || s != 0)) {
                         if ('<' == c) {
