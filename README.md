@@ -53,7 +53,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.fox2code:repacker:1.3.5'
+    implementation 'com.fox2code:repacker:1.3.6'
 }
 ```
 
@@ -69,6 +69,6 @@ dependencies {
   	<dependency>
 	    <groupId>com.fox2code</groupId>
 	    <artifactId>repacker</artifactId>
-	    <version>1.3.5</version>
+	    <version>1.3.6</version>
 	</dependency>
 ```

@@ -131,8 +131,8 @@ public class BytecodeFixer extends ClassVisitor implements Opcodes {
                         }
                     } else {
                         name = (descriptor.charAt(0) == '[' ? "vars" : "var")+index;
-                        if ((descriptor.charAt(0) == 'L' || descriptor.charAt(0) == '[') &&
-                                ! mDescriptor.substring(mDescriptor.indexOf(descriptor)+descriptor.length()).contains(descriptor)) {
+                        if (index <= limit && (descriptor.charAt(0) == 'L' || descriptor.charAt(0) == '[') && mDescriptor.contains(descriptor)
+                                && ! mDescriptor.substring(mDescriptor.indexOf(descriptor)+descriptor.length()).contains(descriptor)) {
                             name = nameFromDesc(descriptor);
                         }
                         int i2 = isStatic ? i + 1 : i;
