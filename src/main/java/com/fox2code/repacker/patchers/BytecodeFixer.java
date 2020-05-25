@@ -1,5 +1,6 @@
 package com.fox2code.repacker.patchers;
 
+import com.fox2code.repacker.utils.ConsoleColors;
 import com.fox2code.repacker.utils.Utils;
 import org.objectweb.asm.*;
 
@@ -22,7 +23,7 @@ public class BytecodeFixer extends ClassVisitor implements Opcodes {
         int i, i$;
         this.sourceName = name.substring((i = name.lastIndexOf('/'))+1, (((i$ = name.indexOf('$')) != -1) && i < i$ )? i$ : name.length())+".java";
         this.self = name;
-        super.visit(version, access, name, signature == null || signature.indexOf('<') == -1 ? null : signature, superName, interfaces);
+        super.visit(version, access, name, signature, superName, interfaces);
     }
 
     @Override
@@ -83,9 +84,34 @@ public class BytecodeFixer extends ClassVisitor implements Opcodes {
             }
 
             private String nameFromDesc(String descriptor) {
-                String name = descriptor.substring(descriptor.lastIndexOf('/') + 1, descriptor.lastIndexOf('/') + 2).toLowerCase()
-                        + descriptor.substring(descriptor.lastIndexOf('/') + 2, descriptor.length() - 1);
-                if (descriptor.indexOf(0) == '[') {
+                String name = descriptor;
+                boolean plural = false;
+                while (name.startsWith("[")) {
+                    name = name.substring(1);
+                    plural = true;
+                }
+                if (name.length() == 1) {
+                    switch (name) {
+                        case "J":
+                            return "longs";
+                        case "D":
+                            return "doubles";
+                        case "Z":
+                            return "booleans";
+                        case "B":
+                            return "bytes";
+                        case "I":
+                            return "ints";
+                        case "F":
+                            return "floats";
+                        case "S":
+                            return "shorts";
+                    }
+                    return "";
+                }
+                name = name.substring(name.lastIndexOf('/') + 1, name.lastIndexOf('/') + 2).toLowerCase()
+                        + name.substring(name.lastIndexOf('/') + 2, name.length() - 1);
+                if (plural) {
                     if (name.charAt(name.length()-1) == 's') {
                         name = name + "es";
                     } else {
@@ -166,6 +192,12 @@ public class BytecodeFixer extends ClassVisitor implements Opcodes {
                         name = parmsNames.getOrDefault(index, name);
                     }
                 }
+                // Fix invalid var names just in case
+                if (name == null || name.isEmpty() || (name.length() == 1 && name.charAt(0) > 128) || name.charAt(0) == '[') {
+                    // This piece of code should NEVER be called
+                    System.out.println(ConsoleColors.YELLOW+"Warning:"+ ConsoleColors.RESET +" Invalid var name: \""+name+"\" for \""+descriptor+"\"");
+                    name = "var"+index;
+                }
                 super.visitLocalVariable(name, descriptor, signature, start, end, index);
             }
         };
@@ -173,6 +205,6 @@ public class BytecodeFixer extends ClassVisitor implements Opcodes {
 
     @Override
     public FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
-        return super.visitField(access, name, descriptor, (signature == null || signature.indexOf('<') == -1) ? null : signature, value);
+        return super.visitField(access, name, descriptor, signature, value);
     }
 }

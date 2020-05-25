@@ -22,7 +22,7 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 public class Utils {
-    public static final int REPACK_REVISION = 4;
+    public static final int REPACK_REVISION = 5;
     private static final int THREADS = 4;
     public static boolean debugRemapping = "true".equalsIgnoreCase(System.getProperty("repacker.debug.remap", System.getProperty("repacker.debug")));
     private static final String charset = "UTF-8";
