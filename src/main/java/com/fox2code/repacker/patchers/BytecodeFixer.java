@@ -12,7 +12,7 @@ import java.util.HashMap;
  */
 public class BytecodeFixer extends ClassVisitor implements Opcodes {
     public BytecodeFixer(ClassVisitor classVisitor) {
-        super(ASM7, classVisitor);
+        super(Utils.ASM_BUILD, classVisitor);
     }
 
     private String sourceName;
@@ -36,7 +36,7 @@ public class BytecodeFixer extends ClassVisitor implements Opcodes {
         final int parms = Utils.countParms(mDescriptor);
         final boolean isStatic = (access & ACC_STATIC) != 0;
         final int limit = Utils.countIndexParms(mDescriptor)+(isStatic?0:1);
-        return new MethodVisitor(ASM7, super.visitMethod(access, mName, mDescriptor, (signature == null
+        return new MethodVisitor(Utils.ASM_BUILD, super.visitMethod(access, mName, mDescriptor, (signature == null
                 || Utils.countParms(signature) != parms) ? null : signature , exceptions)) {
             int i;
             final HashMap<Integer, String> parmsNames = new HashMap<>();

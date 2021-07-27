@@ -4,12 +4,16 @@ import com.fox2code.repacker.layout.DirLayout;
 import com.fox2code.repacker.layout.FlatDirLayout;
 import com.fox2code.repacker.layout.MavenDirLayout;
 import com.fox2code.repacker.utils.ConsoleColors;
+import org.fusesource.jansi.AnsiConsole;
 
 import java.io.File;
 import java.io.IOException;
 
 public class Main {
     public static void main(String[] args) {
+        try { // Note: Lib builds don't add jansi
+            AnsiConsole.systemInstall();
+        } catch (Throwable ignored) {}
         if (args.length != 2 && (args.length != 3 || !args[0].startsWith("-") || args[0].length() == 1)) {
             String color = (args.length == 0 ||
                     (args.length == 1 && ("-h".equals(args[0]) || "--help".equals(args[0]))))
@@ -63,6 +67,7 @@ public class Main {
         try {
             Repacker repacker = new Repacker(maven ?
                     new MavenDirLayout(file) : new FlatDirLayout(file));
+            args[d+1] = repacker.realVersion(args[d+1]);
             DirLayout dirLayout = repacker.getDirLayout();
             if (server) {
                 if (force) {

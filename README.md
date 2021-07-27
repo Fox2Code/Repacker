@@ -21,6 +21,11 @@ and
 
 `java -jar Repacker.jar . 1.15.2-server` to repack MC 1.15.2 server
 
+also you can use
+
+`java -jar Repacker.jar . release` or `java -jar Repacker.jar . snapshot`  
+to repack the latest snapshot or release of the game
+
 pre-release version names are VER-preX (Ex: 1.15-pre1)
 
 The id of `20w14∞` is actually `20w14infinite`
@@ -42,33 +47,4 @@ File repackedClient = repacker.getClientRemappedFile(version);
 
 ## Add as library
 
-### Gradle
-
-```Groovy
-repositories {
-    mavenCentral()
-    maven {
-        url 'http://62.4.29.69/maven'
-    }
-}
-
-dependencies {
-    implementation 'com.fox2code:repacker:1.3.7'
-}
-```
-
-### Maven
-
-```XML
-	<repositories>
-		<repository>
-		    <id>puzzle-mod-loader</id>
-		    <url>http://62.4.29.69/maven</url>
-		</repository>
-	</repositories>
-  	<dependency>
-	    <groupId>com.fox2code</groupId>
-	    <artifactId>repacker</artifactId>
-	    <version>1.3.7</version>
-	</dependency>
-```
+WIP

@@ -15,15 +15,17 @@ import org.objectweb.asm.ClassVisitor;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+
 /*
   * Repacker parrot editions
  */
 public class Repacker {
-    private final HashMap<String, String> cache;
+    private final LinkedHashMap<String, String> cache;
     private final PrintStream out;
     private final DirLayout dirLayout;
+    private String lastRelease;
+    private String lastSnapshot;
 
     @Deprecated
     public Repacker(File cacheDir) {
@@ -41,7 +43,7 @@ public class Repacker {
 
     public Repacker(DirLayout dirLayout, PrintStream out) {
         this.dirLayout = dirLayout;
-        this.cache = new HashMap<>();
+        this.cache = new LinkedHashMap<>();
         this.out = out;
     }
 
@@ -121,11 +123,27 @@ public class Repacker {
     }
 
     public JsonObject getVersionManifest(String version) throws IOException {
+        return this.getVersionManifest0(version, false);
+    }
+
+    private JsonObject getVersionManifest0(String version,boolean check) throws IOException {
         if (version == null) {
             throw new NullPointerException(ConsoleColors.RED_BOLD + "Version cannot be null!" + ConsoleColors.RESET);
         }
-        File versionIndex = dirLayout.getVersionIndexFile(version);
-        if (versionIndex.exists()) {
+        String realVersion = version;
+        if (check) {
+            switch (version) {
+                case "release":
+                    realVersion = lastRelease;
+                    break;
+                case "snapshot":
+                    realVersion = lastSnapshot;
+                    break;
+            }
+        }
+        File versionIndex = realVersion != null ?
+                dirLayout.getVersionIndexFile(realVersion) : null;
+        if (versionIndex != null && versionIndex.exists()) {
             try {
                 return (JsonObject) JsonParser.parseString(Utils.readAll(new FileInputStream(versionIndex)));
             } catch (Exception e) {
@@ -134,7 +152,7 @@ public class Repacker {
         }
 
         File verCache = dirLayout.getIndexCache();
-        if (cache.isEmpty() && verCache.exists()) {
+        if (cache.isEmpty() && verCache.exists() && realVersion != null) {
             try {
                 JsonObject jsonObject = (JsonObject) JsonParser.parseString(Utils.readAll(new FileInputStream(versionIndex)));
                 jsonObject.getAsJsonArray().forEach(jsonElement -> {
@@ -145,8 +163,8 @@ public class Repacker {
                 verCache.delete();
             }
         }
-        String verURL = cache.get(version);
-        if (verURL == null) {
+        String verURL = cache.get(realVersion);
+        if (verURL == null || realVersion == null) {
             String json = Utils.get("https://launchermeta.mojang.com/mc/game/version_manifest.json");
             Files.write(verCache.toPath(), json.getBytes(StandardCharsets.UTF_8));
             JsonObject jsonObject = (JsonObject) JsonParser.parseString(json);
@@ -154,12 +172,28 @@ public class Repacker {
                 JsonObject object = jsonElement.getAsJsonObject();
                 cache.put(object.get("id").getAsString(), object.get("url").getAsString());
             });
-            verURL = cache.get(version);
+            jsonObject = jsonObject.getAsJsonObject("latest");
+            lastRelease = jsonObject.get("release").getAsString();
+            lastSnapshot = jsonObject.get("snapshot").getAsString();
+            if (realVersion == null) {
+                switch (version) {
+                    case "release":
+                        realVersion = lastRelease;
+                        break;
+                    case "snapshot":
+                        realVersion = lastSnapshot;
+                        break;
+                }
+            }
+            verURL = cache.get(realVersion);
             if (verURL == null) {
                 throw new RepackException("Missing version entry!");
             }
         }
-        this.out.println(ConsoleColors.YELLOW_BRIGHT + "Downloading "+version+" manifest..." + ConsoleColors.RESET);
+        if (check) return null;
+        if (versionIndex == null)
+            versionIndex = dirLayout.getVersionIndexFile(realVersion);
+        this.out.println(ConsoleColors.YELLOW_BRIGHT + "Downloading "+realVersion+" manifest..." + ConsoleColors.RESET);
         String manifest = Utils.get(verURL);
         dirLayout.generateDirsFor(version);
         Files.write(versionIndex.toPath(), manifest.getBytes(StandardCharsets.UTF_8));
@@ -214,16 +248,52 @@ public class Repacker {
         return dirLayout.getMappingFile(version, false);
     }
 
-    /**
-     * Use {@link #getDirLayout()} instead
-     */
-    @Deprecated
-    public File getVersionRemapDir(String version) {
-        return dirLayout.getVersionIndexFile(version).getParentFile();
-    }
-
     public DirLayout getDirLayout() {
         return dirLayout;
+    }
+
+    public String getLastRelease() {
+        if (lastRelease == null) {
+            try {
+                this.getVersionManifest0("release", true);
+            } catch (Exception ignored) {}
+        }
+        return lastRelease;
+    }
+
+    public String getLastSnapshot() {
+        if (lastSnapshot == null) {
+            try {
+                this.getVersionManifest0("snapshot", true);
+            } catch (Exception ignored) {}
+        }
+        return lastSnapshot;
+    }
+
+    public String realVersion(String version) {
+        switch (version) {
+            case "20w14∞":
+                return "20w14infinite";
+            case "release":
+                return this.getLastRelease();
+            case "snapshot":
+                return this.getLastSnapshot();
+            default:
+                return version;
+        }
+    }
+
+    public Set<String> getAllCachedVersions() {
+        return Collections.unmodifiableSet(this.cache.keySet());
+    }
+
+    public Set<String> getAllVersions() {
+        if (lastSnapshot == null) {
+            try {
+                this.getVersionManifest0("snapshot", true);
+            } catch (Exception ignored) {}
+        }
+        return this.getAllCachedVersions();
     }
 
     /**

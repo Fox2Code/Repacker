@@ -1,16 +1,17 @@
 package com.fox2code.repacker.utils;
 
 import com.fox2code.repacker.patchers.BytecodeFixer;
-import com.fox2code.repacker.patchers.MthOptimiser;
 import com.fox2code.repacker.patchers.PostPatcher;
 import com.fox2code.repacker.rebuild.ClassData;
 import com.fox2code.repacker.rebuild.ClassDataProvider;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.commons.ClassRemapper;
 import org.objectweb.asm.commons.Remapper;
 
 import java.io.*;
+import java.lang.management.ManagementFactory;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
@@ -22,8 +23,10 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 public class Utils {
-    public static final int REPACK_REVISION = 5;
-    private static final int THREADS = 4;
+    public static final int ASM_BUILD = Opcodes.ASM9;
+    public static final int REPACK_REVISION = 6;
+    private static final int THREADS = Math.max(2,
+            ManagementFactory.getOperatingSystemMXBean().getAvailableProcessors());
     public static boolean debugRemapping = "true".equalsIgnoreCase(System.getProperty("repacker.debug.remap", System.getProperty("repacker.debug")));
     private static final String charset = "UTF-8";
     public static byte[] cjo;
@@ -80,7 +83,7 @@ public class Utils {
 
         inputStream.close();
 
-        return new String(buffer.toByteArray(), charset);
+        return buffer.toString(charset);
     }
 
     public static byte[] readAllBytes(InputStream inputStream) throws IOException {
@@ -190,15 +193,14 @@ public class Utils {
                 throw new RepackException("Interupted", ie);
             }
         }
-        MthOptimiser.postOptimise(remap);
         remap.put("META-INF/MANIFEST.MF", ("Manifest-Version: 1.0\nRepack-Revision: "+REPACK_REVISION+"\n").getBytes(StandardCharsets.UTF_8));
         postPatcher.post(remap);
         Utils.writeZIP(remap, new FileOutputStream(out));
     }
 
     private static class CtxRemapper extends Remapper {
-        private Remapper parent;
-        private ClassDataProvider cdp;
+        private final Remapper parent;
+        private final ClassDataProvider cdp;
 
         public CtxRemapper(Remapper remapper,ClassDataProvider classDataProvider) {
             this.parent = remapper;

@@ -32,7 +32,7 @@ public class MavenDirLayout implements DirLayout {
 
     @Override
     public File getMinecraftRepackFile(String version, boolean client) {
-        return new File(root, "net/minecraft/minecraft/"+version+"/minecraft-"+version+(client?"":"-server")+"-remaped.jar");
+        return new File(root, "net/minecraft/minecraft/"+version+"/minecraft-"+version+(client?"":"-server")+"-remapped.jar");
     }
 
     @Override

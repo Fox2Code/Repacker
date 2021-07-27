@@ -50,7 +50,7 @@ public class ClientAnnotationPatcher implements PostPatcher, Opcodes {
         String clName;
 
         public ClassPatcher(ClassVisitor classVisitor) {
-            super(ASM7, classVisitor);
+            super(Utils.ASM_BUILD, classVisitor);
             this.skip = false;
         }
 
