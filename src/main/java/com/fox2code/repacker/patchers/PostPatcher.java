@@ -17,5 +17,8 @@ public interface PostPatcher extends Opcodes {
     };
 
     ClassVisitor patch(ClassVisitor classVisitor);
+
     void post(Map<String,byte[]> remapJar);
+
+    default void appendManifest(StringBuilder stringBuilder) {}
 }

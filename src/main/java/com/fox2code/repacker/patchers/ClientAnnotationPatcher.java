@@ -17,8 +17,8 @@ public class ClientAnnotationPatcher implements PostPatcher, Opcodes {
     }
 
     public ClientAnnotationPatcher(Mapping client,Mapping server) {
-        this.client = client.getReverseMapping();
-        this.server = server.getReverseMapping();
+        this.client = client.getRawReverseMapping();
+        this.server = server.getRawReverseMapping();
     }
 
     @Override
@@ -32,6 +32,9 @@ public class ClientAnnotationPatcher implements PostPatcher, Opcodes {
             remapJar.put("com/fox2code/"+repackerCst()+"/ClientJarOnly.class", Utils.cjo);
         }
     }
+
+    @Override
+    public void appendManifest(StringBuilder stringBuilder) {}
 
     public boolean isClientOnly(String className) {
         return client.cl.contains(className) && !server.cl.contains(className);

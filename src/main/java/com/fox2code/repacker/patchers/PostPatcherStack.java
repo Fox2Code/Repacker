@@ -39,6 +39,13 @@ public class PostPatcherStack implements PostPatcher, Iterable<PostPatcher> {
     }
 
     @Override
+    public void appendManifest(StringBuilder stringBuilder) {
+        for (PostPatcher postPatcher: linkedList) {
+            postPatcher.appendManifest(stringBuilder);
+        }
+    }
+
+    @Override
     public Iterator<PostPatcher> iterator() {
         return linkedList.iterator();
     }

@@ -36,7 +36,8 @@ public class Main {
                 char c = p.charAt(i);
                 switch (c) {
                     default:
-                        System.err.println(ConsoleColors.RED_BOLD + "Unknown argument: -"+c);
+                        System.err.println(ConsoleColors.RED_BOLD +
+                                "Unknown argument: -" + c + ConsoleColors.RESET);
                         System.exit(-2);
                         return;
                     case 'f':
@@ -57,7 +58,7 @@ public class Main {
         }
         File file = new File(args[d]);
         if (!file.exists()) {
-            System.out.println(ConsoleColors.RED_BOLD + "Cache dir doesn't exists!");
+            System.out.println(ConsoleColors.RED_BOLD + "Cache dir doesn't exists!" + ConsoleColors.RESET);
             return;
         }
         boolean server = args[d+1].endsWith("-server");

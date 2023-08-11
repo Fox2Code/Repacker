@@ -1,6 +1,5 @@
 package com.fox2code.repacker.utils;
 
-//Added by Stupid Fernix2Code GNURF AROUF
 public class ConsoleColors {
     // Reset
     public static final String RESET = "\033[0m";  // Text Reset

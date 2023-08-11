@@ -15,6 +15,7 @@ import java.lang.management.ManagementFactory;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,10 +25,11 @@ import java.util.zip.ZipOutputStream;
 
 public class Utils {
     public static final int ASM_BUILD = Opcodes.ASM9;
-    public static final int REPACK_REVISION = 6;
+    public static final int REPACK_REVISION = 7;
     private static final int THREADS = Math.max(2,
             ManagementFactory.getOperatingSystemMXBean().getAvailableProcessors());
-    public static boolean debugRemapping = "true".equalsIgnoreCase(System.getProperty("repacker.debug.remap", System.getProperty("repacker.debug")));
+    public static boolean debugRemapping = "true".equalsIgnoreCase(
+            System.getProperty("repacker.debug.remap", System.getProperty("repacker.debug")));
     private static final String charset = "UTF-8";
     public static byte[] cjo;
 
@@ -35,7 +37,8 @@ public class Utils {
         try {
             InputStream inputStream = Utils.class.getClassLoader().getResourceAsStream("ClientJarOnly.class.repacker");
             if (inputStream == null) {
-                System.err.println(ConsoleColors.RED_BRIGHT + "Err: missing /ClientJarOnly.class.repacker" + ConsoleColors.RESET);
+                System.err.println(ConsoleColors.RED_BRIGHT +
+                        "Err: missing /ClientJarOnly.class.repacker" + ConsoleColors.RESET);
             } else {
                 cjo = readAllBytes(inputStream);
             }
@@ -64,6 +67,7 @@ public class Utils {
 
         URLConnection connection = new URL(url).openConnection();
         connection.setRequestProperty("Accept-Charset", charset);
+        connection.setRequestProperty("Connection", "keep-alive");
 
         InputStream inputStream = connection.getInputStream();
 
@@ -104,6 +108,7 @@ public class Utils {
     public static void download(String url,OutputStream outputStream) throws IOException {
         URLConnection connection = new URL(url).openConnection();
         connection.setRequestProperty("Accept-Charset", charset);
+        connection.setRequestProperty("Connection", "keep-alive");
 
         InputStream inputStream = connection.getInputStream();
 
@@ -157,7 +162,7 @@ public class Utils {
         if (postPatcher == null) {
             postPatcher = PostPatcher.NONE;
         }
-        Map<String,byte[]> orig = Utils.readZIP(new FileInputStream(in));
+        Map<String,byte[]> orig = Utils.readZIP(Files.newInputStream(in.toPath()));
         ClassDataProvider origCDP = new ClassDataProvider(null);
         origCDP.addClasses(orig);
         mapping = new CtxRemapper(mapping, origCDP);
@@ -193,9 +198,15 @@ public class Utils {
                 throw new RepackException("Interupted", ie);
             }
         }
-        remap.put("META-INF/MANIFEST.MF", ("Manifest-Version: 1.0\nRepack-Revision: "+REPACK_REVISION+"\n").getBytes(StandardCharsets.UTF_8));
+        StringBuilder stringBuilder = new StringBuilder(
+                "Manifest-Version: 1.0\nRepack-Revision: "+
+                        REPACK_REVISION + "\n");
+        postPatcher.appendManifest(stringBuilder);
+        String text = stringBuilder.toString();
+        if (!text.endsWith("\n")) text += "\n";
+        remap.put("META-INF/MANIFEST.MF", text.getBytes(StandardCharsets.UTF_8));
         postPatcher.post(remap);
-        Utils.writeZIP(remap, new FileOutputStream(out));
+        Utils.writeZIP(remap, Files.newOutputStream(out.toPath()));
     }
 
     private static class CtxRemapper extends Remapper {

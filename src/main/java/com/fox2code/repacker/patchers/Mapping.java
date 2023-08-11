@@ -4,21 +4,21 @@ import com.fox2code.repacker.utils.Utils;
 import org.objectweb.asm.commons.Remapper;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
 public class Mapping extends Remapper {
-    HashMap<String, String> map;
-    HashMap<String, String> methods;
-    HashMap<String, String> fields;
+    private final HashMap<String, String> map;
+    private final HashMap<String, String> methods;
+    private final HashMap<String, String> fields;
     ReverseMapping cachedReverseMapping = null;
 
     public Mapping(File file) throws IOException {
-        this(new FileInputStream(file));
+        this(Files.newInputStream(file.toPath()));
     }
 
     public Mapping(InputStream is) throws IOException {
@@ -166,7 +166,7 @@ public class Mapping extends Remapper {
         return methods;
     }
 
-    ReverseMapping getReverseMapping() {
+    ReverseMapping getRawReverseMapping() {
         if (cachedReverseMapping == null) {
             cachedReverseMapping = new ReverseMapping();
             cachedReverseMapping.cl.addAll(this.map.values());

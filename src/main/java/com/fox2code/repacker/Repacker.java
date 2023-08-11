@@ -17,9 +17,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.*;
 
-/*
-  * Repacker parrot editions
- */
 public class Repacker {
     private final LinkedHashMap<String, String> cache;
     private final PrintStream out;
@@ -65,7 +62,7 @@ public class Repacker {
             }
             if (!versionJar.exists()) {
                 this.out.println(ConsoleColors.YELLOW_BRIGHT + "Downloading client jar..." + ConsoleColors.RESET);
-                Utils.download(downloads.getAsJsonObject("client").get("url").getAsString(), new FileOutputStream(versionJar));
+                Utils.download(downloads.getAsJsonObject("client").get("url").getAsString(), Files.newOutputStream(versionJar.toPath()));
             }
             Mapping mapping = getMappings(versionMappings, downloads.getAsJsonObject("client_mappings").get("url").getAsString(), "client");
             Mapping mappingSrv = getMappings(versionMappingsSrv, downloads.getAsJsonObject("server_mappings").get("url").getAsString(), "server");
@@ -82,7 +79,7 @@ public class Repacker {
             JsonObject jsonObject = getVersionManifest(version);
             JsonObject downloads = jsonObject.getAsJsonObject("downloads");
             this.out.println(ConsoleColors.YELLOW_BRIGHT + "Downloading client jar..." + ConsoleColors.RESET);
-            Utils.download(downloads.getAsJsonObject("client").get("url").getAsString(), new FileOutputStream(versionJar));
+            Utils.download(downloads.getAsJsonObject("client").get("url").getAsString(), Files.newOutputStream(versionJar.toPath()));
         }
     }
 
@@ -103,7 +100,7 @@ public class Repacker {
             }
             if (!versionJar.exists()) {
                 this.out.println(ConsoleColors.YELLOW_BRIGHT + "Downloading server jar..." + ConsoleColors.RESET);
-                Utils.download(downloads.getAsJsonObject("server").get("url").getAsString(), new FileOutputStream(versionJar));
+                Utils.download(downloads.getAsJsonObject("server").get("url").getAsString(), Files.newOutputStream(versionJar.toPath()));
             }
             Mapping mapping = getMappings(versionMappings, downloads.getAsJsonObject("server_mappings").get("url").getAsString(), "server");
 
@@ -118,7 +115,7 @@ public class Repacker {
             JsonObject jsonObject = getVersionManifest(version);
             JsonObject downloads = jsonObject.getAsJsonObject("downloads");
             this.out.println(ConsoleColors.YELLOW_BRIGHT + "Downloading client jar..." + ConsoleColors.RESET);
-            Utils.download(downloads.getAsJsonObject("server").get("url").getAsString(), new FileOutputStream(versionJar));
+            Utils.download(downloads.getAsJsonObject("server").get("url").getAsString(), Files.newOutputStream(versionJar.toPath()));
         }
     }
 
@@ -145,7 +142,7 @@ public class Repacker {
                 dirLayout.getVersionIndexFile(realVersion) : null;
         if (versionIndex != null && versionIndex.exists()) {
             try {
-                return (JsonObject) JsonParser.parseString(Utils.readAll(new FileInputStream(versionIndex)));
+                return (JsonObject) JsonParser.parseString(Utils.readAll(Files.newInputStream(versionIndex.toPath())));
             } catch (Exception e) {
                 versionIndex.delete();
             }
@@ -154,7 +151,7 @@ public class Repacker {
         File verCache = dirLayout.getIndexCache();
         if (cache.isEmpty() && verCache.exists() && realVersion != null) {
             try {
-                JsonObject jsonObject = (JsonObject) JsonParser.parseString(Utils.readAll(new FileInputStream(versionIndex)));
+                JsonObject jsonObject = (JsonObject) JsonParser.parseString(Utils.readAll(Files.newInputStream(versionIndex.toPath())));
                 jsonObject.getAsJsonArray().forEach(jsonElement -> {
                     JsonObject object = jsonElement.getAsJsonObject();
                     cache.put(object.get("id").getAsString(), object.get("url").getAsString());
@@ -216,7 +213,7 @@ public class Repacker {
 
     public Mapping getMappings(File file,String fallBack,String type) throws IOException {
         if (file.exists()) {
-            return new Mapping(Utils.readAll(new FileInputStream(file)));
+            return new Mapping(Utils.readAll(Files.newInputStream(file.toPath())));
         }
         this.out.println(ConsoleColors.YELLOW_BRIGHT + "Downloading "+type+" mappings..." + ConsoleColors.RESET);
         String mappings = Utils.get(fallBack);
@@ -352,6 +349,16 @@ public class Repacker {
                 }
             }
             out.println(ConsoleColors.YELLOW_BRIGHT + "Writing "+side+" jar..." + ConsoleColors.RESET);//<3<3<3<3<3
+        }
+
+        @Override
+        public void appendManifest(StringBuilder stringBuilder) {
+            if (postPatcher != null) {
+                postPatcher.appendManifest(stringBuilder);
+                if (postPatcherSec != null) {
+                    postPatcherSec.appendManifest(stringBuilder);
+                }
+            }
         }
     }
 }

@@ -5,13 +5,17 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
 
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Type;
+import java.security.SecureClassLoader;
 import java.util.*;
 
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 import static org.objectweb.asm.Opcodes.ASM6;
 
 public class ClassDataProvider {
-    public static boolean debugClassResolution = "true".equalsIgnoreCase(System.getProperty("repacker.debug.cdp", System.getProperty("repacker.debug")));
+    public static boolean debugClassResolution = "true".equalsIgnoreCase(
+            System.getProperty("repacker.debug.cdp", System.getProperty("repacker.debug")));
+    private static final ClassLoader BOOTSTRAP_CLASS_LOADER = new SecureClassLoader(null) {};
 
     private static final ClData object;
     private static final ClData objectArray;
@@ -28,7 +32,8 @@ public class ClassDataProvider {
         this.clDataHashMap = new HashMap<>();
         this.clDataHashMap.put("java/lang/Object", object);
         this.clDataHashMap.put("[java/lang/Object", objectArray);
-        this.classLoader = classLoader==null? ClassLoader.getSystemClassLoader():classLoader;
+        this.classLoader = classLoader == null ?
+                ClassLoader.getSystemClassLoader() : classLoader;
     }
 
     public static class ClData implements ClassData {
@@ -177,7 +182,7 @@ public class ClassDataProvider {
     }
 
     class ClData2Array extends ClData {
-        private ClData clData;
+        private final ClData clData;
 
         private ClData2Array(ClData clData) {
             super("["+clData.getName());
@@ -208,9 +213,9 @@ public class ClassDataProvider {
             return clData;
         }
         clData = new ClData2(clName);
+        final ClData2 tClData = (ClData2) clData;
         try {
             ClassReader classReader = new ClassReader(Objects.requireNonNull(this.classLoader.getResourceAsStream(clName + ".class")));
-            final ClData2 tClData = (ClData2) clData;
             classReader.accept(new ClassVisitor(ASM6) {
                 @Override
                 public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
@@ -222,10 +227,24 @@ public class ClassDataProvider {
                 }
             }, ClassReader.SKIP_CODE);
         } catch (Exception e) {
-            if (debugClassResolution) {
-                System.out.println("DEBUG: Failed to resolve -> "+clName);
+            try { // Try to use the boot class loader as a fallback (Help fix issues on Java9+)
+                Class<?> cl = Class.forName(clName.replace('/','.'), false, BOOTSTRAP_CLASS_LOADER);
+                tClData.access = cl.getModifiers();
+                tClData.superClass = cl.getGenericSuperclass().getTypeName().replace('.','/');
+                Type[] classes = cl.getGenericInterfaces();
+                if (classes.length != 0) {
+                    String[] interfaces = new String[classes.length];
+                    for (int i = 0; i < interfaces.length;i++) {
+                        interfaces[i] = classes[i].getTypeName().replace('.','/');
+                    }
+                    tClData.interfaces = Arrays.asList(interfaces);
+                }
+            } catch (Exception e2) {
+                if (debugClassResolution) {
+                    System.out.println("DEBUG: Failed to resolve -> " + clName);
+                }
+                clData.superClass = "java/lang/Object";
             }
-            clData.superClass = "java/lang/Object";
         }
         clDataHashMap.put(clName,clData);
         return clData;
@@ -285,11 +304,11 @@ public class ClassDataProvider {
                 }, ClassReader.SKIP_CODE);
             } catch (Exception e) {
                 if (debugClassResolution) {
-                    System.out.println("DEBUG: Invalid input class -> "+name);
+                    System.out.println("DEBUG: Invalid input class -> " + name);
                 }
                 clData.superClass = "java/lang/Object";
             }
-            clDataHashMap.put(name,clData);
+            clDataHashMap.put(name, clData);
         }
     }
 }

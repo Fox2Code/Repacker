@@ -35,9 +35,11 @@ public class BytecodeFixer extends ClassVisitor implements Opcodes {
     public MethodVisitor visitMethod(int access,final String mName,final String mDescriptor, String signature, String[] exceptions) {
         final int parms = Utils.countParms(mDescriptor);
         final boolean isStatic = (access & ACC_STATIC) != 0;
-        final int limit = Utils.countIndexParms(mDescriptor)+(isStatic?0:1);
-        return new MethodVisitor(Utils.ASM_BUILD, super.visitMethod(access, mName, mDescriptor, (signature == null
-                || Utils.countParms(signature) != parms) ? null : signature , exceptions)) {
+        final int limit = Utils.countIndexParms(mDescriptor) + ( isStatic ? 0 : 1);
+        // Signature may not match with description due to obfuscation
+        if (signature == null || Utils.countParms(signature) != parms) signature = null;
+        return new MethodVisitor(Utils.ASM_BUILD, super.visitMethod(
+                access, mName, mDescriptor, signature, exceptions)) {
             int i;
             final HashMap<Integer, String> parmsNames = new HashMap<>();
 
@@ -104,6 +106,8 @@ public class BytecodeFixer extends ClassVisitor implements Opcodes {
                             return "ints";
                         case "F":
                             return "floats";
+                        case "C":
+                            return "chars";
                         case "S":
                             return "shorts";
                     }
@@ -125,7 +129,8 @@ public class BytecodeFixer extends ClassVisitor implements Opcodes {
             public void visitLocalVariable(String name, String descriptor, String signature, Label start, Label end, int index) {
                 if (index == 0 && !isStatic) {
                     name = "this";
-                } else if (name.length() == 1 && name.charAt(0) > 128) {
+                } else if ((name.length() <= 1 && name.charAt(0) > 128) ||
+                        name.startsWith("$$")) {
                     if (parms == 1 && index == (isStatic ? 0 : 1)) {
                         if (descriptor.length() == 1) {
                             switch (descriptor.charAt(0)) {
@@ -163,7 +168,8 @@ public class BytecodeFixer extends ClassVisitor implements Opcodes {
                         }
                         int i2 = isStatic ? i + 1 : i;
                         if (parms == 3 && i2 > 0 && i2 <= 5 && mDescriptor.startsWith("(DDD)")) {
-                            if (mName.toLowerCase().contains("color")) {
+                            if (mName.toLowerCase().contains("color") ||
+                                    mName.toLowerCase().contains("rgb")) {
                                 switch (i2) {
                                     case 1:
                                         name = "r";
@@ -193,10 +199,12 @@ public class BytecodeFixer extends ClassVisitor implements Opcodes {
                     }
                 }
                 // Fix invalid var names just in case
-                if (name == null || name.isEmpty() || (name.length() == 1 && name.charAt(0) > 128) || name.charAt(0) == '[') {
+                if (name == null || name.isEmpty() || (name.length() == 1 && name.charAt(0) > 128)
+                        || name.charAt(0) == '[' || name.startsWith("$$")) {
                     // This piece of code should NEVER be called
-                    System.out.println(ConsoleColors.YELLOW+"Warning:"+ ConsoleColors.RESET +" Invalid var name: \""+name+"\" for \""+descriptor+"\"");
-                    name = "var"+index;
+                    System.out.println(ConsoleColors.YELLOW+ "Warning:" + ConsoleColors.RESET +
+                            " Invalid var name: \"" + name + "\" for \"" + descriptor+"\"");
+                    name = "var" + index;
                 }
                 super.visitLocalVariable(name, descriptor, signature, start, end, index);
             }
